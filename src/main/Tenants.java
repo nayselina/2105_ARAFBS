@@ -302,7 +302,7 @@ public class Tenants extends JFrame {
 	    }
 	}
 	
-	private void deleteTenant(int tenantID) {
+/*	private void deleteTenant(int tenantID) {
 	    int confirm = JOptionPane.showConfirmDialog(this,
 	            "Are you sure you want to delete this tenant?",
 	            "Confirm Deletion",
@@ -313,13 +313,45 @@ public class Tenants extends JFrame {
 	        boolean isDeleted = dbConnection.deleteTenant(tenantID);
 
 	        if (isDeleted) { 
+	        	
+	        	int unitID = dbConnection.getUnitIdForTenant(tenantID);
+
+	            // Now update the status of the unit to "Available"
+	            boolean isUnitUpdated = dbConnection.updateUnitStatusToAvailable(unitID);
+
 	            reattachButtonListeners();
 	            JOptionPane.showMessageDialog(this, "Tenant deleted successfully.");
 	        } else {
 	            JOptionPane.showMessageDialog(this, "Failed to delete tenant.", "Error", JOptionPane.ERROR_MESSAGE);
 	        }       
 	    }
-	}   
+	}     */
+	
+	
+	private void deleteTenant(int tenantID) {
+	    // Ask for confirmation before proceeding with deletion
+	    int confirm = JOptionPane.showConfirmDialog(this,
+	            "Are you sure you want to delete this tenant?",
+	            "Confirm Deletion",
+	            JOptionPane.YES_NO_OPTION);
+
+	    if (confirm == JOptionPane.YES_OPTION) {
+	        // Get the DatabaseConnection instance
+	        DatabaseConnection dbConnection = DatabaseConnection.getInstance();
+	        
+	        // Call the method that deletes the tenant and updates the unit status
+	        boolean isSuccess = dbConnection.deleteTenantAndUpdateUnitStatus(tenantID);
+
+	        // Check if the operation was successful
+	        if (isSuccess) {
+	            reattachButtonListeners();
+	            JOptionPane.showMessageDialog(this, "Tenant deleted and unit status updated successfully.");
+	        } else {
+	            JOptionPane.showMessageDialog(this, "Failed to delete tenant or update unit status.", "Error", JOptionPane.ERROR_MESSAGE);
+	        }
+	    }
+	}
+
 	private void reattachButtonListeners() {
 	    // Reattach listeners for "More" and "Delete" buttons
 	    tableTenants.getColumnModel().getColumn(3).setCellEditor(new ButtonEditor(new JButton("More"), this::showTenantDetails));

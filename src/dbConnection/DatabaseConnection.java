@@ -268,13 +268,113 @@ public class DatabaseConnection {
             return rowsAffected > 0;
         } catch (SQLException e) {
             e.printStackTrace();
-            return false;
+            
         }
+            return false;
+       
     }
 
-    
-    
-    
-  
+	public int getUnitIdForTenant(int tenantID) {
+		// TODO Auto-generated method stub
+		int unitID = -1;
+	    String query = "SELECT unitID FROM tenant WHERE tenantID = ?";
+
+	    try (Connection connection = getConnection();
+	         PreparedStatement statement = connection.prepareStatement(query)) {
+
+	        statement.setInt(1, tenantID);
+	        ResultSet resultSet = statement.executeQuery();
+
+	        if (resultSet.next()) {
+	            unitID = resultSet.getInt("unitID");
+	        }
+	    } catch (SQLException e) {
+	        e.printStackTrace();
+	    }
+	    return unitID;
+	}
+
+	public boolean updateUnitStatusToAvailable(int unitID) {
+		// TODO Auto-generated method stub
+		boolean isSuccess = false;
+	    String query = "UPDATE apartment SET status = 'Available' WHERE unitID = ?";
+
+	    try (Connection connection = getConnection();
+	         PreparedStatement statement = connection.prepareStatement(query)) {
+
+	        statement.setInt(1, unitID);
+	        int rowsAffected = statement.executeUpdate();
+
+	        if (rowsAffected > 0) {
+	            isSuccess = true;
+	        }
+	    } catch (SQLException e) {
+	        e.printStackTrace();
+	    }
+	    return isSuccess;
+	}
+	
+	public boolean deleteTenantAndUpdateUnitStatus(int tenantID) {
+        String deleteTenantQuery = "DELETE FROM tenant WHERE tenantID = ?";
+        String getUnitIdQuery = "SELECT unitID FROM tenant WHERE tenantID = ?";
+        String updateUnitStatusQuery = "UPDATE apartment SET status = 'Available', occupants = 0 WHERE unitID = ?";
+
+        // Using transaction for ensuring atomicity
+        try {
+            // Start transaction
+            connection.setAutoCommit(false);
+
+            // Get the unit ID associated with the tenant
+            int unitID = -1;
+            try (PreparedStatement getUnitStmt = connection.prepareStatement(getUnitIdQuery)) {
+                getUnitStmt.setInt(1, tenantID);
+                ResultSet rs = getUnitStmt.executeQuery();
+                if (rs.next()) {
+                    unitID = rs.getInt("unitID");
+                }
+            }
+
+            // If unitID is found, proceed with deletion and update
+            if (unitID != -1) {
+                // Delete tenant
+                try (PreparedStatement deleteStmt = connection.prepareStatement(deleteTenantQuery)) {
+                    deleteStmt.setInt(1, tenantID);
+                    int rowsDeleted = deleteStmt.executeUpdate();
+
+                    // If tenant was deleted, update the apartment status
+                    if (rowsDeleted > 0) {
+                        try (PreparedStatement updateStmt = connection.prepareStatement(updateUnitStatusQuery)) {
+                            updateStmt.setInt(1, unitID);
+                            int rowsUpdated = updateStmt.executeUpdate();
+
+                            // If the apartment status is updated, commit the transaction
+                            if (rowsUpdated > 0) {
+                                connection.commit();  // Commit both delete and update
+                                return true;
+                            }
+                        }
+                    }
+                }
+            }
+
+            // If any of the operations fail, rollback the transaction
+            connection.rollback();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            try {
+                connection.rollback();  // In case of exception, rollback changes
+            } catch (SQLException ex) {
+                ex.printStackTrace();
+            }
+        } finally {
+            try {
+                connection.setAutoCommit(true);  // Restore default commit behavior
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+
+        return false;  // Return false if the operation failed
+    }
    
 }
