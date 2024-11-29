@@ -1,4 +1,4 @@
-package Main;
+package main;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -65,7 +65,7 @@ public class InsertChargesDialog extends JDialog {
         
         JPanel mainPanel = new JPanel();
     	mainPanel.setBackground(new Color(240, 238, 226));
-    	mainPanel.setBounds(0, 85, 450, 593);
+    	mainPanel.setBounds(0, 85, 450, 327);
     	contentPanel.add(mainPanel);
     	mainPanel.setLayout(null);
     	
@@ -125,13 +125,17 @@ public class InsertChargesDialog extends JDialog {
 			buttonPane.setLayout(new FlowLayout(FlowLayout.RIGHT));
 			getContentPane().add(buttonPane, BorderLayout.SOUTH);
 			{
-				JButton okButton = new JButton("OK");
-				okButton.setActionCommand("OK");
-				buttonPane.add(okButton);
-				getRootPane().setDefaultButton(okButton);
+				JButton btnInsert = new JButton("INSERT");
+				btnInsert.setBorderPainted(false);
+				btnInsert.setBackground(new Color(183, 183, 47));
+				btnInsert.setActionCommand("OK");
+				buttonPane.add(btnInsert);
+				getRootPane().setDefaultButton(btnInsert);
 			}
 			{
 				JButton cancelButton = new JButton("Cancel");
+				cancelButton.setBorderPainted(false);
+				cancelButton.setBackground(new Color(183, 183, 47));
 				cancelButton.addActionListener(new ActionListener() {
 					public void actionPerformed(ActionEvent e) {
 						dispose();

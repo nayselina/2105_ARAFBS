@@ -1,11 +1,15 @@
-package Main;
+package main;
 
 import java.awt.Color;
+
 import java.awt.Component;
 import java.awt.EventQueue;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.util.List;
+import java.util.function.Consumer;
 
+import javax.swing.AbstractCellEditor;
 import javax.swing.BorderFactory;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -19,13 +23,26 @@ import componentsUI.SidebarPanel;
 import componentsUI.BackgroundPanel;
 
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+
 import java.awt.Font;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.SwingConstants;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
+
 import javax.swing.table.JTableHeader;
+import javax.swing.table.TableCellRenderer;
+
+import dbConnection.DatabaseConnection;
+import model.TenantDetails;
+import model.TenantModel;
+
+
+
+import javax.swing.table.TableCellEditor;
+
 import java.awt.Cursor;
 import javax.swing.JButton;
 import java.awt.event.ActionListener;
@@ -123,45 +140,9 @@ public class Tenants extends JFrame {
         tableTenants.setShowHorizontalLines(false);
         tableTenants.setFont(new Font("Segoe UI", Font.PLAIN, 18));
         tableTenants.setModel(new DefaultTableModel(
-        	new Object[][] {
-        		{null, null, null, null},
-        		{null, null, null, null},
-        		{null, null, null, null},
-        		{null, null, null, null},
-        		{null, null, null, null},
-        		{null, null, null, null},
-        		{null, null, null, null},
-        		{null, null, null, null},
-        		{null, null, null, null},
-        		{null, null, null, null},
-        		{null, null, null, null},
-        		{null, null, null, null},
-        		{null, null, null, null},
-        		{null, null, null, null},
-        		{null, null, null, null},
-        		{null, null, null, null},
-        		{null, null, null, null},
-        		{null, null, null, null},
-        		{null, null, null, null},
-        		{null, null, null, null},
-        		{null, null, null, null},
-        		{null, null, null, null},
-        		{null, null, null, null},
-        		{null, null, null, null},
-        		{null, null, null, null},
-        		{null, null, null, null},
-        		{null, null, null, null},
-        		{null, null, null, null},
-        		{null, null, null, null},
-        		{null, null, null, null},
-        		{null, null, null, null},
-        		{null, null, null, null},
-        		{null, null, null, null},
-        		{null, null, null, null},
-        		{null, null, null, null},
-        	},
+        	new Object[][] {},
         	new String[] {
-        		"Tenant ID", "Tenant Name", "Unit Rented", ""
+        		"Tenant ID", "Tenant Name", "Unit Rented", "More" , "Delete"
         	}
         ));
         scrollPane.setViewportView(tableTenants);
@@ -229,6 +210,8 @@ public class Tenants extends JFrame {
         btnRefresh.addActionListener(new ActionListener() {
         	public void actionPerformed(ActionEvent e) {
         		
+        		loadTenantData();
+        		
         	}
         });
         btnRefresh.setForeground(Color.WHITE);
@@ -269,5 +252,122 @@ public class Tenants extends JFrame {
 
             }
         });  */
+        
+        loadTenantData();
 	}
+	
+	private void loadTenantData() {
+	    DatabaseConnection dbConnection = DatabaseConnection.getInstance();
+	    List<TenantModel> tenantsList = dbConnection.fetchTenants();
+	    
+	    DefaultTableModel model = (DefaultTableModel) tableTenants.getModel();
+
+	    // Clear existing rows
+	    model.setRowCount(0);
+
+	    for (TenantModel tenant : tenantsList) {
+	        model.addRow(new Object[]{
+	            tenant.getTenantID(),
+	            tenant.getTenantName(),
+	            tenant.getUnitCode(),
+	            "More",
+	            "Delete"
+	        });
+	    }
+
+	    if (model.getColumnCount() >= 5) {
+	        tableTenants.getColumnModel().getColumn(3).setCellRenderer(new ButtonRenderer());
+	        tableTenants.getColumnModel().getColumn(4).setCellRenderer(new ButtonRenderer());
+
+	        tableTenants.getColumnModel().getColumn(3).setCellEditor(new ButtonEditor(new JButton("More"), this::showTenantDetails));
+	        tableTenants.getColumnModel().getColumn(4).setCellEditor(new ButtonEditor(new JButton("Delete"), this::deleteTenant));
+	    }
+	}
+	
+	private void showTenantDetails(int tenantID) {
+	    DatabaseConnection dbConnection = DatabaseConnection.getInstance();
+	    TenantDetails tenantDetails = dbConnection.fetchTenantDetails(tenantID);
+
+	    if (tenantDetails != null) {
+	        JOptionPane.showMessageDialog(this, "TENANT DETAILS\n\n" +
+	            "Name: " + tenantDetails.getTenantName() + "\n\n" +
+	            "Contact: " + tenantDetails.getContactNum() + "\n\n" +
+	            "Email: " + tenantDetails.getEmail() + "\n\n" +
+	            "Additional Info: " + tenantDetails.getAdditionalInfo() + "\n\n" +
+	            "Unit Code: " + tenantDetails.getUnitCode() + "\n\n" +
+	            "Rent Start: " + tenantDetails.getRentStart() + "\n\n"
+	        );
+	    } else {
+	        JOptionPane.showMessageDialog(this, "Details not found for Tenant ID: " + tenantID, "Error", JOptionPane.ERROR_MESSAGE);
+	    }
+	}
+	
+	private void deleteTenant(int tenantID) {
+	    int confirm = JOptionPane.showConfirmDialog(this,
+	            "Are you sure you want to delete this tenant?",
+	            "Confirm Deletion",
+	            JOptionPane.YES_NO_OPTION);
+
+	    if (confirm == JOptionPane.YES_OPTION) {
+	        DatabaseConnection dbConnection = DatabaseConnection.getInstance();
+	        boolean isDeleted = dbConnection.deleteTenant(tenantID);
+
+	        if (isDeleted) { 
+	            reattachButtonListeners();
+	            JOptionPane.showMessageDialog(this, "Tenant deleted successfully.");
+	        } else {
+	            JOptionPane.showMessageDialog(this, "Failed to delete tenant.", "Error", JOptionPane.ERROR_MESSAGE);
+	        }       
+	    }
+	}   
+	private void reattachButtonListeners() {
+	    // Reattach listeners for "More" and "Delete" buttons
+	    tableTenants.getColumnModel().getColumn(3).setCellEditor(new ButtonEditor(new JButton("More"), this::showTenantDetails));
+	    tableTenants.getColumnModel().getColumn(4).setCellEditor(new ButtonEditor(new JButton("Delete"), this::deleteTenant));
+	}
+	
+	
+	public class ButtonRenderer extends JButton implements TableCellRenderer {
+	    public ButtonRenderer() {
+	        setOpaque(true);
+	    }
+
+	    @Override
+	    public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+	        setText((value == null) ? "" : value.toString());
+	        return this;
+	    }
+	}
+	
+	public class ButtonEditor extends AbstractCellEditor implements TableCellEditor {
+	    private JButton button;
+	    private Consumer<Integer> action;
+
+	    public ButtonEditor(JButton button, Consumer<Integer> action) {
+	        this.button = button;
+	        this.action = action;
+	        button.addActionListener(e -> {
+	            JTable table = (JTable) button.getParent();
+	            int row = table.getSelectedRow();
+	            int tenantID = (int) table.getValueAt(row, 0);
+	            action.accept(tenantID); // Call the method with tenantID
+	            fireEditingStopped();
+	        });
+	    }
+
+	    @Override
+	    public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
+	        button.setText((value == null) ? "" : value.toString());
+	        return button;
+	    }
+
+	    @Override
+	    public Object getCellEditorValue() {
+	        return button.getText();
+	    }
+	}
+	
+	
+	
+	
 }

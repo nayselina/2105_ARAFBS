@@ -1,4 +1,4 @@
-package Main;
+package main;
 
 import java.awt.EventQueue;
 
@@ -19,6 +19,7 @@ import javax.swing.border.LineBorder;
 import componentsUI.CustomButton;
 import componentsUI.FrameDragUtility;
 import componentsUI.HoverIconButton;
+import dbConnection.DatabaseConnection;
 import componentsUI.Header;
 
 import javax.swing.border.AbstractBorder;
@@ -414,7 +415,7 @@ public class Homepage extends JFrame {
 
         // Main Panel for content (Available Apartments, Recent Paid Status, Calendar, and Payment)
         JPanel mainPanel = new JPanel();
-        mainPanel.setBackground(Color.WHITE);
+        mainPanel.setBackground(new Color(255, 255, 255));
         mainPanel.setLayout(null);
       //  mainPanel.setBounds(318, 124, 966, 502); // Decrease height to fit Record of Payment
         mainPanel.setBounds(301, 76, 949, 724);
@@ -437,28 +438,21 @@ public class Homepage extends JFrame {
         availableApartmentsPanel.setBounds(0, 222, 475, 256); // Left side of the top section
         mainPanel.add(availableApartmentsPanel);
         availableApartmentsPanel.setLayout(null);
-
-        JLabel lblApartmentsTitle = new JLabel("Available Apartments");
-        lblApartmentsTitle.setFont(new Font("Segoe UI", Font.BOLD, 30));
-        lblApartmentsTitle.setBounds(20, 20, 351, 40);
-        availableApartmentsPanel.add(lblApartmentsTitle);
-
-        lblOccupied = new JLabel("Occupied: " + occupiedApartments + " / " + totalApartments);
-        lblOccupied.setFont(new Font("Segoe UI", Font.PLAIN, 18));
-        lblOccupied.setBounds(20, 70, 400, 30);
-        availableApartmentsPanel.add(lblOccupied);
-
-        lblVacant = new JLabel("Vacant: " + vacantApartments + " / " + totalApartments);
-        lblVacant.setFont(new Font("Segoe UI", Font.PLAIN, 18));
-        lblVacant.setBounds(20, 110, 400, 30);
-        availableApartmentsPanel.add(lblVacant);
-
-        progressBarOccupied = new JProgressBar();
-        progressBarOccupied.setForeground(new Color(0, 128, 0)); // Green for occupied
-        progressBarOccupied.setValue((occupiedApartments * 100) / totalApartments);
-        progressBarOccupied.setStringPainted(true);
-        progressBarOccupied.setBounds(20, 150, 400, 30);
-        availableApartmentsPanel.add(progressBarOccupied);
+        
+        
+        DatabaseConnection db = DatabaseConnection.getInstance();
+        int totalApart = db.getTotalApartments();
+        
+        JLabel lblTotalApartments = new JLabel("Total Apartment Units:");
+        lblTotalApartments.setBounds(23, 40, 351, 40);
+        availableApartmentsPanel.add(lblTotalApartments);
+        lblTotalApartments.setFont(new Font("Segoe UI", Font.BOLD, 30));
+        
+        JLabel lblTotal = new JLabel("Total:");
+        lblTotal.setBounds(368, -12, 121, 133);
+        availableApartmentsPanel.add(lblTotal);
+        lblTotal.setFont(new Font("Segoe UI", Font.BOLD, 80));
+        lblTotal.setText("" + totalApart);
 
         // Recent Paid Status Section (on the right)
         JPanel recentPaidPanel = new JPanel();
@@ -534,12 +528,44 @@ public class Homepage extends JFrame {
         lblLastPaymentDate.setFont(new Font("Segoe UI", Font.PLAIN, 18));
         lblLastPaymentDate.setBounds(20, 150, 350, 30);
         paymentRecordPanel.add(lblLastPaymentDate);
+        
+        
+       
+        
+                JLabel lblApartmentsTitle = new JLabel("Available Apartments");
+                lblApartmentsTitle.setBounds(530, 24, 351, 40);
+                mainPanel.add(lblApartmentsTitle);
+                lblApartmentsTitle.setFont(new Font("Segoe UI", Font.BOLD, 30));
+                
+                        lblOccupied = new JLabel("Occupied: " + occupiedApartments + " / " + totalApartments);
+                        lblOccupied.setBounds(511, 62, 400, 30);
+                        mainPanel.add(lblOccupied);
+                        lblOccupied.setFont(new Font("Segoe UI", Font.PLAIN, 18));
+                        
+                                lblVacant = new JLabel("Vacant: " + vacantApartments + " / " + totalApartments);
+                                lblVacant.setBounds(511, 96, 400, 30);
+                                mainPanel.add(lblVacant);
+                                lblVacant.setFont(new Font("Segoe UI", Font.PLAIN, 18));
+                                
+                                        progressBarOccupied = new JProgressBar();
+                                        progressBarOccupied.setBounds(511, 160, 400, 30);
+                                        mainPanel.add(progressBarOccupied);
+                                        progressBarOccupied.setForeground(new Color(0, 128, 0)); // Green for occupied
+                                        progressBarOccupied.setValue((occupiedApartments * 100) / totalApartments);
+                                        progressBarOccupied.setStringPainted(true);
+        
+      
+
+        
+        
+        
+        
 
         // Set up a timer to update the date every day
-        Timer timer = new Timer(1000 * 60 * 60 * 24, e -> {
+    /*    Timer timer = new Timer(1000 * 60 * 60 * 24, e -> {
             lblCurrentDate.setText("Current Date: " + getCurrentDate());
         });
-        timer.start();
+        timer.start();   */
         
         
 

@@ -1,10 +1,12 @@
-package Main;
+package main;
 
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.EventQueue;
 import java.awt.Font;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 
@@ -16,22 +18,26 @@ import javax.swing.JScrollPane;
 import javax.swing.border.EmptyBorder;
 
 import componentsUI.Header;
+import componentsUI.RoundedButton;
 import componentsUI.FrameDragUtility;
 import componentsUI.RoundedPanel;
 import componentsUI.SidebarPanel;
 import componentsUI.BackgroundPanel;
+import javax.swing.JTabbedPane;
 import javax.swing.JTable;
 import javax.swing.SwingConstants;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
 
-public class Ledger extends JFrame {
+
+
+public class Pay extends JFrame {
 
 	private static final long serialVersionUID = 1L;
-	private BackgroundPanel photoPanel;
 	private JPanel contentPane;
-	private JTable tableLedgerTable;
+	private BackgroundPanel photoPanel;
+	private JTable tablePayBills;
 
 	/**
 	 * Launch the application.
@@ -40,7 +46,7 @@ public class Ledger extends JFrame {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
-					Ledger frame = new Ledger();
+					Pay frame = new Pay();
 					frame.setVisible(true);
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -52,14 +58,16 @@ public class Ledger extends JFrame {
 	/**
 	 * Create the frame.
 	 */
-	public Ledger() {
-		setTitle("Tenant Ledger");
+	public Pay() {
+		setTitle("Apartment Rentals and Facilities Billing System");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setBounds(100, 100, 1300, 800); // Fixed size
         setLocationRelativeTo(null); // Center the window
         setUndecorated(true); // Remove the border
         
         new FrameDragUtility(this);
+        
+    
 
         contentPane = new JPanel();
         contentPane.setBackground(new Color(240, 238, 226));
@@ -70,7 +78,7 @@ public class Ledger extends JFrame {
         Header header = new Header(this);
         getContentPane().add(header);
         
-        SidebarPanel sidebar = new SidebarPanel(this, "Tenant Ledger");
+        SidebarPanel sidebar = new SidebarPanel(this, "Pay");
         getContentPane().add(sidebar);
         
         RoundedPanel mainPanel = new RoundedPanel(30);
@@ -79,7 +87,7 @@ public class Ledger extends JFrame {
         mainPanel.setLayout(null); // Absolute positioning
         contentPane.add(mainPanel);
         
-        photoPanel = new BackgroundPanel("/images/interior5.png");
+        photoPanel = new BackgroundPanel("/images/interior2.png");
         photoPanel.setBackground(Color.RED);
         photoPanel.setBounds(251, 26, 1049, 774);
         photoPanel.setLayout(null); // Absolute positioning
@@ -94,11 +102,15 @@ public class Ledger extends JFrame {
             }
         });  
         
+        
+       
         JPanel stPanel = new JPanel();
         stPanel.setBackground(Color.LIGHT_GRAY);
         stPanel.setBounds(0, 61, 949, 663);
         mainPanel.add(stPanel);
         stPanel.setLayout(null);
+        
+        
         
         JScrollPane scrollPane = new JScrollPane();
         scrollPane.setBackground(Color.WHITE);
@@ -108,46 +120,58 @@ public class Ledger extends JFrame {
         scrollPane.setBounds(0, 0, 949, 663);
         stPanel.add(scrollPane);
         
-        tableLedgerTable = new JTable();
-        tableLedgerTable.setRowHeight(30);
-        tableLedgerTable.setModel(new DefaultTableModel(
+        tablePayBills = new JTable();
+        tablePayBills.setRowHeight(30);
+        tablePayBills.setFont(new Font("Segoe UI", Font.PLAIN, 18));
+        tablePayBills.setSelectionBackground(new Color(255, 230, 150));
+        tablePayBills.setShowVerticalLines(false);
+        tablePayBills.setShowHorizontalLines(false);
+        tablePayBills.setModel(new DefaultTableModel(
         	new Object[][] {
-        		{null, null},
-        		{null, null},
-        		{null, null},
-        		{null, null},
-        		{null, null},
-        		{null, null},
-        		{null, null},
-        		{null, null},
-        		{null, null},
-        		{null, null},
-        		{null, null},
-        		{null, null},
-        		{null, null},
-        		{null, null},
-        		{null, null},
-        		{null, null},
-        		{null, null},
-        		{null, null},
-        		{null, null},
-        		{null, null},
-        		{null, null},
-        		{null, null},
-        		{null, null},
-        		{null, null},
+        		{null, null, null, null},
+        		{null, null, null, null},
+        		{null, null, null, null},
+        		{null, null, null, null},
+        		{null, null, null, null},
+        		{null, null, null, null},
+        		{null, null, null, null},
+        		{null, null, null, null},
+        		{null, null, null, null},
+        		{null, null, null, null},
+        		{null, null, null, null},
+        		{null, null, null, null},
+        		{null, null, null, null},
+        		{null, null, null, null},
+        		{null, null, null, null},
+        		{null, null, null, null},
+        		{null, null, null, null},
+        		{null, null, null, null},
+        		{null, null, null, null},
+        		{null, null, null, null},
+        		{null, null, null, null},
+        		{null, null, null, null},
+        		{null, null, null, null},
+        		{null, null, null, null},
+        		{null, null, null, null},
+        		{null, null, null, null},
+        		{null, null, null, null},
+        		{null, null, null, null},
+        		{null, null, null, null},
+        		{null, null, null, null},
+        		{null, null, null, null},
+        		{null, null, null, null},
+        		{null, null, null, null},
+        		{null, null, null, null},
+        		{null, null, null, null},
+        		{null, null, null, null},
         	},
         	new String[] {
-        		"Tenants", "Ledgers"
+        		"Tenant ID", "Tenant Name", "Bill ID", "Total Bill"
         	}
         ));
-        tableLedgerTable.setSelectionBackground(new Color(255, 230, 150));
-        tableLedgerTable.setFont(new Font("Segoe UI", Font.PLAIN, 18));
-        tableLedgerTable.setShowVerticalLines(false);
-        tableLedgerTable.setShowHorizontalLines(false);
-        scrollPane.setViewportView(tableLedgerTable);
+        scrollPane.setViewportView(tablePayBills);
         
-        tableLedgerTable.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
+        tablePayBills.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
             @Override
             public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
                 Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
@@ -158,7 +182,6 @@ public class Ledger extends JFrame {
                 return c;
             }
         });
-        
         this.addComponentListener(new ComponentAdapter() {
             @Override
             public void componentResized(ComponentEvent e) {
@@ -166,23 +189,45 @@ public class Ledger extends JFrame {
                 int frameWidth = getWidth();
                 stPanel.setBounds(0, 76, frameWidth - 401, frameHeight - 76);
                 scrollPane.setBounds(0, 0, frameWidth - 401, frameHeight - 76); 
-                tableLedgerTable.setBounds(0, 0, frameWidth - 401, frameHeight - 76); 
+                tablePayBills.setBounds(0, 0, frameWidth - 401, frameHeight - 76); 
+
+            }
+        });
+        
+        JTableHeader tblHeader = tablePayBills.getTableHeader();
+        tblHeader.setFont(new Font("Segoe UI", Font.BOLD, 20));
+        tblHeader.setBackground(new Color(247, 247, 231));
+        tblHeader.setForeground(Color.black);
+        tblHeader.setReorderingAllowed(false);  
+        
+        RoundedButton btnPay = new RoundedButton("Make Payment", 15);
+        btnPay.addActionListener(new ActionListener() {
+        	public void actionPerformed(ActionEvent e) {
+        	}
+        });
+        btnPay.setForeground(Color.WHITE);
+        btnPay.setBorderPainted(false);
+        btnPay.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        btnPay.setBackground(new Color(183, 183, 47));
+        btnPay.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        btnPay.setBounds(797, 15, 123, 30);
+        mainPanel.add(btnPay);
+        
+        mainPanel.addComponentListener(new ComponentAdapter() {
+            @Override
+            public void componentResized(ComponentEvent e) {
+                int frameWidth = mainPanel.getWidth();
+                btnPay.setBounds(frameWidth - 150, 20, 123, 40); // Adjust sidebarPanel height
+
 
             }
         });  
         
-     // Table Header Style
-        JTableHeader tblHeader = tableLedgerTable.getTableHeader();
-        tblHeader.setFont(new Font("Segoe UI", Font.BOLD, 20));
-        tblHeader.setBackground(new Color(247, 247, 231));
-        tblHeader.setForeground(Color.black);
-        tblHeader.setReorderingAllowed(false);         
         
-        
-        JLabel lblTenantLedger = new JLabel("Tenant Ledger");
-        lblTenantLedger.setFont(new Font("Segoe UI", Font.BOLD, 28));
-        lblTenantLedger.setBounds(15, 11, 265, 35);
-        mainPanel.add(lblTenantLedger);
+        JLabel lblPayBills = new JLabel("Pay Bills");
+        lblPayBills.setFont(new Font("Segoe UI", Font.BOLD, 28));
+        lblPayBills.setBounds(15, 11, 265, 35);
+        mainPanel.add(lblPayBills);
         
         this.addComponentListener(new ComponentAdapter() {
             @Override
@@ -194,5 +239,4 @@ public class Ledger extends JFrame {
             }
         });
 	}
-
 }

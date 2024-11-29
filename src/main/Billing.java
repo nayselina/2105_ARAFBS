@@ -1,4 +1,4 @@
-package Main;
+package main;
 
 import java.awt.Color;
 import java.awt.Component;
@@ -23,21 +23,18 @@ import componentsUI.FrameDragUtility;
 import componentsUI.RoundedPanel;
 import componentsUI.SidebarPanel;
 import componentsUI.BackgroundPanel;
-import javax.swing.JTabbedPane;
 import javax.swing.JTable;
 import javax.swing.SwingConstants;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
 
-
-
-public class Pay extends JFrame {
+public class Billing extends JFrame {
 
 	private static final long serialVersionUID = 1L;
-	private JPanel contentPane;
 	private BackgroundPanel photoPanel;
-	private JTable tablePayBills;
+	private JPanel contentPane;
+	private JTable tableRentBills;
 
 	/**
 	 * Launch the application.
@@ -46,7 +43,7 @@ public class Pay extends JFrame {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
-					Pay frame = new Pay();
+					Billing frame = new Billing();
 					frame.setVisible(true);
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -58,7 +55,7 @@ public class Pay extends JFrame {
 	/**
 	 * Create the frame.
 	 */
-	public Pay() {
+	public Billing() {
 		setTitle("Apartment Rentals and Facilities Billing System");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setBounds(100, 100, 1300, 800); // Fixed size
@@ -66,8 +63,6 @@ public class Pay extends JFrame {
         setUndecorated(true); // Remove the border
         
         new FrameDragUtility(this);
-        
-    
 
         contentPane = new JPanel();
         contentPane.setBackground(new Color(240, 238, 226));
@@ -78,16 +73,16 @@ public class Pay extends JFrame {
         Header header = new Header(this);
         getContentPane().add(header);
         
-        SidebarPanel sidebar = new SidebarPanel(this, "Pay");
+        SidebarPanel sidebar = new SidebarPanel(this, "Rent Bills");
         getContentPane().add(sidebar);
         
         RoundedPanel mainPanel = new RoundedPanel(30);
         mainPanel.setBackground(Color.WHITE);
         mainPanel.setBounds(301, 76, 949, 724);
-        mainPanel.setLayout(null); // Absolute positioning
+        mainPanel.setLayout(null); // Absolute positioning 
         contentPane.add(mainPanel);
         
-        photoPanel = new BackgroundPanel("/images/interior2.png");
+        photoPanel = new BackgroundPanel("/images/interior4.png");
         photoPanel.setBackground(Color.RED);
         photoPanel.setBounds(251, 26, 1049, 774);
         photoPanel.setLayout(null); // Absolute positioning
@@ -102,15 +97,11 @@ public class Pay extends JFrame {
             }
         });  
         
-        
-       
         JPanel stPanel = new JPanel();
         stPanel.setBackground(Color.LIGHT_GRAY);
         stPanel.setBounds(0, 61, 949, 663);
         mainPanel.add(stPanel);
         stPanel.setLayout(null);
-        
-        
         
         JScrollPane scrollPane = new JScrollPane();
         scrollPane.setBackground(Color.WHITE);
@@ -120,58 +111,38 @@ public class Pay extends JFrame {
         scrollPane.setBounds(0, 0, 949, 663);
         stPanel.add(scrollPane);
         
-        tablePayBills = new JTable();
-        tablePayBills.setRowHeight(30);
-        tablePayBills.setFont(new Font("Segoe UI", Font.PLAIN, 18));
-        tablePayBills.setSelectionBackground(new Color(255, 230, 150));
-        tablePayBills.setShowVerticalLines(false);
-        tablePayBills.setShowHorizontalLines(false);
-        tablePayBills.setModel(new DefaultTableModel(
+        tableRentBills = new JTable();
+        tableRentBills.setModel(new DefaultTableModel(
         	new Object[][] {
-        		{null, null, null, null},
-        		{null, null, null, null},
-        		{null, null, null, null},
-        		{null, null, null, null},
-        		{null, null, null, null},
-        		{null, null, null, null},
-        		{null, null, null, null},
-        		{null, null, null, null},
-        		{null, null, null, null},
-        		{null, null, null, null},
-        		{null, null, null, null},
-        		{null, null, null, null},
-        		{null, null, null, null},
-        		{null, null, null, null},
-        		{null, null, null, null},
-        		{null, null, null, null},
-        		{null, null, null, null},
-        		{null, null, null, null},
-        		{null, null, null, null},
-        		{null, null, null, null},
-        		{null, null, null, null},
-        		{null, null, null, null},
-        		{null, null, null, null},
-        		{null, null, null, null},
-        		{null, null, null, null},
-        		{null, null, null, null},
-        		{null, null, null, null},
-        		{null, null, null, null},
-        		{null, null, null, null},
-        		{null, null, null, null},
-        		{null, null, null, null},
-        		{null, null, null, null},
-        		{null, null, null, null},
-        		{null, null, null, null},
-        		{null, null, null, null},
-        		{null, null, null, null},
+        		{null, null, null, null, null, null, null, null, null},
+        		{null, null, null, null, null, null, null, null, null},
+        		{null, null, null, null, null, null, null, null, null},
+        		{null, null, null, null, null, null, null, null, null},
+        		{null, null, null, null, null, null, null, null, null},
+        		{null, null, null, null, null, null, null, null, null},
+        		{null, null, null, null, null, null, null, null, null},
+        		{null, null, null, null, null, null, null, null, null},
+        		{null, null, null, null, null, null, null, null, null},
+        		{null, null, null, null, null, null, null, null, null},
+        		{null, null, null, null, null, null, null, null, null},
+        		{null, null, null, null, null, null, null, null, null},
+        		{null, null, null, null, null, null, null, null, null},
+        		{null, null, null, null, null, null, null, null, null},
+        		{null, null, null, null, null, null, null, null, null},
+        		{null, null, null, null, null, null, null, null, null},
         	},
         	new String[] {
-        		"Tenant ID", "Tenant Name", "Bill ID", "Total Bill"
+        		"Bill ID", "Tenant Name", "Rent Amount", "Electricity Bill", "Water Bill", "Facility Bill", "Total", "Due Date", "Status"
         	}
         ));
-        scrollPane.setViewportView(tablePayBills);
+        tableRentBills.setSelectionBackground(new Color(255, 230, 150));
+        tableRentBills.setRowHeight(30);
+        tableRentBills.setFont(new Font("Segoe UI", Font.PLAIN, 18));
+        tableRentBills.setShowHorizontalLines(false);
+        tableRentBills.setShowVerticalLines(false);
+        scrollPane.setViewportView(tableRentBills);
         
-        tablePayBills.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
+        tableRentBills.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
             @Override
             public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
                 Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
@@ -182,6 +153,7 @@ public class Pay extends JFrame {
                 return c;
             }
         });
+        
         this.addComponentListener(new ComponentAdapter() {
             @Override
             public void componentResized(ComponentEvent e) {
@@ -189,45 +161,82 @@ public class Pay extends JFrame {
                 int frameWidth = getWidth();
                 stPanel.setBounds(0, 76, frameWidth - 401, frameHeight - 76);
                 scrollPane.setBounds(0, 0, frameWidth - 401, frameHeight - 76); 
-                tablePayBills.setBounds(0, 0, frameWidth - 401, frameHeight - 76); 
+                tableRentBills.setBounds(0, 0, frameWidth - 401, frameHeight - 76); 
 
             }
-        });
+        });  
         
-        JTableHeader tblHeader = tablePayBills.getTableHeader();
-        tblHeader.setFont(new Font("Segoe UI", Font.BOLD, 20));
+        JTableHeader tblHeader = tableRentBills.getTableHeader();
+        tblHeader.setFont(new Font("Segoe UI", Font.BOLD, 14));
         tblHeader.setBackground(new Color(247, 247, 231));
         tblHeader.setForeground(Color.black);
-        tblHeader.setReorderingAllowed(false);  
+        tblHeader.setReorderingAllowed(false); 
         
-        RoundedButton btnPay = new RoundedButton("Make Payment", 15);
-        btnPay.addActionListener(new ActionListener() {
+        
+        
+        
+        JLabel lblRentBills = new JLabel("Rent Bills");
+        lblRentBills.setFont(new Font("Segoe UI", Font.BOLD, 28));
+        lblRentBills.setBounds(15, 11, 265, 35);
+        mainPanel.add(lblRentBills);
+        
+    //  JButton btnAddTenant = new JButton("Add Tenant");
+        RoundedButton btnInsertCharges = new RoundedButton("Add Tenant", 15);
+        btnInsertCharges.setText("Insert Charges");
+        btnInsertCharges.addActionListener(new ActionListener() {
+        	public void actionPerformed(ActionEvent e) {
+        	
+        	InsertChargesDialog insertDialog = new InsertChargesDialog();
+            
+            // Set modal to block other windows while this dialog is open
+        	insertDialog.setModal(true);
+            
+            // Display the dialog
+        	insertDialog.setVisible(true);
+        	}
+        });
+        btnInsertCharges.setForeground(Color.WHITE);
+        btnInsertCharges.setBorderPainted(false);
+        btnInsertCharges.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        btnInsertCharges.setBackground(new Color(183, 183, 47));
+        btnInsertCharges.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        btnInsertCharges.setBounds(714, 15, 115, 30);
+        mainPanel.add(btnInsertCharges);
+        
+     //   JButton btnRefresh = new JButton("Refresh");
+        RoundedButton btnRefresh = new RoundedButton("Refresh", 15);
+        btnRefresh.addActionListener(new ActionListener() {
         	public void actionPerformed(ActionEvent e) {
         	}
         });
-        btnPay.setForeground(Color.WHITE);
-        btnPay.setBorderPainted(false);
-        btnPay.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        btnPay.setBackground(new Color(183, 183, 47));
-        btnPay.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        btnPay.setBounds(797, 15, 123, 30);
-        mainPanel.add(btnPay);
+        btnRefresh.setForeground(Color.WHITE);
+        btnRefresh.setBorderPainted(false);
+        btnRefresh.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        btnRefresh.setBackground(new Color(183, 183, 47));
+        btnRefresh.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        btnRefresh.setBounds(840, 15, 80, 30);
+        mainPanel.add(btnRefresh);
         
         mainPanel.addComponentListener(new ComponentAdapter() {
             @Override
             public void componentResized(ComponentEvent e) {
                 int frameWidth = mainPanel.getWidth();
-                btnPay.setBounds(frameWidth - 150, 20, 123, 40); // Adjust sidebarPanel height
+                btnInsertCharges.setBounds(frameWidth - 225, 20, 115, 40); // Adjust sidebarPanel height
+                btnRefresh.setBounds(frameWidth - 100, 20, 80, 40); // Adjust sidebarPanel height
 
 
             }
         });  
         
-        
-        JLabel lblPayBills = new JLabel("Pay Bills");
-        lblPayBills.setFont(new Font("Segoe UI", Font.BOLD, 28));
-        lblPayBills.setBounds(15, 11, 265, 35);
-        mainPanel.add(lblPayBills);
+        this.addComponentListener(new ComponentAdapter() {
+            @Override
+            public void componentResized(ComponentEvent e) {
+                int frameHeight = getHeight(); // Get the new frame height
+                int frameWidth = getWidth();
+                mainPanel.setBounds(351, 76, frameWidth - 401, frameHeight - 76); // Adjust sidebarPanel height
+
+            }
+        });  
         
         this.addComponentListener(new ComponentAdapter() {
             @Override
@@ -239,4 +248,5 @@ public class Pay extends JFrame {
             }
         });
 	}
+
 }

@@ -6,13 +6,13 @@ import java.awt.*;
 import java.awt.event.*;
 import javax.swing.border.LineBorder;
 
-import Main.Apartments;
-import Main.Billing;
-import Main.Homepage;
-import Main.Ledger;
-import Main.Main;
-import Main.Pay;
-import Main.Tenants;
+import main.Apartments;
+import main.Billing;
+import main.Homepage;
+import main.Ledger;
+import main.Main;
+import main.Pay;
+import main.Tenants;
 
 public class SidebarPanel extends JPanel {
 	
