@@ -9,6 +9,7 @@ import componentsUI.BackgroundPanel;
 import componentsUI.ChangingBackgroundPanel;
 import componentsUI.CustomCheckBoxIcon;
 import componentsUI.FrameDragUtility;
+import componentsUI.FrameResizer;
 import componentsUI.RoundedPanel;
 import componentsUI.RoundedPlaceholderPasswordField;
 import componentsUI.RoundedPlaceholderTextField;
@@ -125,7 +126,7 @@ public class Main extends JFrame {
         RoundedPanel loginPanel = new RoundedPanel(30);
         loginPanel.setBackground(Color.WHITE);
         loginPanel.setLayout(null);
-        loginPanel.setBounds(422, 104, 446, 508); 
+        loginPanel.setBounds(422, 132, 446, 508); 
         loginPanel.setPreferredSize(new Dimension(446, 508));
         contentPane.add(loginPanel);
         

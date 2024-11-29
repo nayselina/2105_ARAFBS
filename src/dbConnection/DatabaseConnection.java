@@ -11,6 +11,9 @@ import java.sql.SQLException;
 import java.text.ParseException; // Add this import
 import java.text.SimpleDateFormat;
 import java.util.Date;
+
+import javax.swing.JComboBox;
+import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
 
 import model.TenantDetails;
@@ -18,6 +21,7 @@ import model.TenantModel;
 
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 
 public class DatabaseConnection {
@@ -84,6 +88,35 @@ public class DatabaseConnection {
             System.out.println("Failed to fetch total apartments.");
         }
         return total;
+        
+    }
+    
+    public void populateAvailableUnitCodes(JComboBox<String> comboBoxUnitCode) {
+        String query = "SELECT unitCode, status FROM apartment";  // Query to fetch units and their statuses
+
+        try (PreparedStatement pstmt = connection.prepareStatement(query);
+             ResultSet rs = pstmt.executeQuery()) {
+
+            // Clear the combo box before adding new items
+            comboBoxUnitCode.removeAllItems();
+
+            // Add an initial empty item (optional)
+            comboBoxUnitCode.addItem("");  // Placeholder item
+
+            // Loop through the result set to add available units
+            while (rs.next()) {
+                String unitCode = rs.getString("unitCode");
+                String status = rs.getString("status");
+
+                // Add to combo box only if the unit is available
+                if ("Available".equals(status)) {
+                    comboBoxUnitCode.addItem(unitCode);
+                }
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
     
    
@@ -187,7 +220,17 @@ public class DatabaseConnection {
 			
 			// 8. Insert into bills table
 			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-			String dueDate = sdf.format(new java.util.Date(System.currentTimeMillis() + 30L * 24 * 60 * 60 * 1000));  // Add 1 month to rent date
+			
+			//currentTime + 1 month
+		//	String dueDate = sdf.format(new java.util.Date(System.currentTimeMillis() + 30L * 24 * 60 * 60 * 1000));  // Add 1 month to rent date
+			// Use Calendar to add 1 month to rentStartDate
+	        Calendar calendar = Calendar.getInstance();
+	        calendar.setTime(rentStartDate);
+	        calendar.add(Calendar.MONTH, 1); // Add one month
+
+	        // Get the dueDate after adding one month
+	        java.sql.Date dueDate = new java.sql.Date(calendar.getTimeInMillis());
+
 			String billsQuery = "INSERT INTO bills (tenantID, unitID, totalAmount, totalBalance, dueDate, status) " +
 			                "VALUES (?, ?, ?, ?, ?, ?)";
 			PreparedStatement billsStmt = connection.prepareStatement(billsQuery);
@@ -195,7 +238,7 @@ public class DatabaseConnection {
 			billsStmt.setInt(2, unitID);
 			billsStmt.setDouble(3, rentAmount);
 			billsStmt.setDouble(4, rentAmount);
-			billsStmt.setString(5, dueDate);
+			billsStmt.setDate(5, dueDate);
 			billsStmt.setString(6, "Unpaid");
 			billsStmt.executeUpdate();
 			
@@ -260,64 +303,10 @@ public class DatabaseConnection {
         return null;
     }
     
-    public boolean deleteTenant(int tenantID) {
-        String query = "DELETE FROM tenant WHERE tenantID = ?";
-        try (PreparedStatement pstmt = connection.prepareStatement(query)) {
-            pstmt.setInt(1, tenantID);
-            int rowsAffected = pstmt.executeUpdate();
-            return rowsAffected > 0;
-        } catch (SQLException e) {
-            e.printStackTrace();
-            
-        }
-            return false;
-       
-    }
-
-	public int getUnitIdForTenant(int tenantID) {
-		// TODO Auto-generated method stub
-		int unitID = -1;
-	    String query = "SELECT unitID FROM tenant WHERE tenantID = ?";
-
-	    try (Connection connection = getConnection();
-	         PreparedStatement statement = connection.prepareStatement(query)) {
-
-	        statement.setInt(1, tenantID);
-	        ResultSet resultSet = statement.executeQuery();
-
-	        if (resultSet.next()) {
-	            unitID = resultSet.getInt("unitID");
-	        }
-	    } catch (SQLException e) {
-	        e.printStackTrace();
-	    }
-	    return unitID;
-	}
-
-	public boolean updateUnitStatusToAvailable(int unitID) {
-		// TODO Auto-generated method stub
-		boolean isSuccess = false;
-	    String query = "UPDATE apartment SET status = 'Available' WHERE unitID = ?";
-
-	    try (Connection connection = getConnection();
-	         PreparedStatement statement = connection.prepareStatement(query)) {
-
-	        statement.setInt(1, unitID);
-	        int rowsAffected = statement.executeUpdate();
-
-	        if (rowsAffected > 0) {
-	            isSuccess = true;
-	        }
-	    } catch (SQLException e) {
-	        e.printStackTrace();
-	    }
-	    return isSuccess;
-	}
-	
 	public boolean deleteTenantAndUpdateUnitStatus(int tenantID) {
         String deleteTenantQuery = "DELETE FROM tenant WHERE tenantID = ?";
         String getUnitIdQuery = "SELECT unitID FROM tenant WHERE tenantID = ?";
-        String updateUnitStatusQuery = "UPDATE apartment SET status = 'Available', occupants = 0 WHERE unitID = ?";
+        String updateUnitStatusQuery = "UPDATE apartment SET status = 'Available', occupants = NULL WHERE unitID = ?";
 
         // Using transaction for ensuring atomicity
         try {
@@ -376,5 +365,201 @@ public class DatabaseConnection {
 
         return false;  // Return false if the operation failed
     }
-   
+	
+	public void populateTable(JTable tableRentBills) {
+	/*	String query = "SELECT " +
+                "b.billID, " +
+                "CONCAT(t.firstName, ' ', t.lastName) AS tenantName, " +
+                "CONCAT('₱', FORMAT(a.rentAmount, 2)) AS rentAmount, " +
+                "IF(b.electricityBill IS NULL, 'Awaiting Data', CONCAT('₱', FORMAT(b.electricityBill, 2))) AS electricityBill, " +
+                "IF(b.waterBill IS NULL, 'Awaiting Data', CONCAT('₱', FORMAT(b.waterBill, 2))) AS waterBill, " +
+                "IF(b.totalAmount = 0, 'Paid', CONCAT('₱', FORMAT(b.totalAmount, 2))) AS totalAmount, " +
+                "b.dueDate, " +
+                "b.status, " +
+                "IF(f.facilityBill IS NULL, 'Awaiting Data', CONCAT('₱', FORMAT(f.facilityBill, 2))) AS facilityBill " +
+                "FROM bills b " +
+                "JOIN tenant t ON b.tenantID = t.tenantID " +
+                "JOIN apartment a ON b.unitID = a.unitID " +
+                "LEFT JOIN facility f ON b.facilityID = f.facilityID";  // Use LEFT JOIN to include all bills   */
+		
+		String query = "SELECT "
+		        + "b.billID, "
+		        + "CONCAT(t.firstName, ' ', t.lastName) AS tenantName, "
+		        + "CONCAT('₱', FORMAT(a.rentAmount, 2)) AS rentAmount, "
+		        + "IF(b.electricityBill IS NULL, 'Awaiting Data', CONCAT('₱', FORMAT(b.electricityBill, 2))) AS electricityBill, "
+		        + "IF(b.waterBill IS NULL, 'Awaiting Data', CONCAT('₱', FORMAT(b.waterBill, 2))) AS waterBill, "
+		        + "CONCAT('₱', FORMAT("
+		        + "(a.rentAmount + IFNULL(b.electricityBill, 0) + IFNULL(b.waterBill, 0) + IFNULL(f.facilityBill, 0)), 2)"
+		        + ") AS totalAmount, "
+		        + "b.dueDate, "
+		        + "b.status, "
+		        + "IF(f.facilityBill IS NULL, 'Awaiting Data', CONCAT('₱', FORMAT(f.facilityBill, 2))) AS facilityBill "
+		        + "FROM bills b "
+		        + "JOIN tenant t ON b.tenantID = t.tenantID "
+		        + "JOIN apartment a ON b.unitID = a.unitID "
+		        + "LEFT JOIN facility f ON b.facilityID = f.facilityID;";
+
+	    
+
+	    try (PreparedStatement pstmt = connection.prepareStatement(query);
+	         ResultSet rs = pstmt.executeQuery()) {
+	        DefaultTableModel model = (DefaultTableModel) tableRentBills.getModel();
+	        model.setRowCount(0); // Clear the table
+	        while (rs.next()) {
+	            Object[] row = {
+	                rs.getInt("billID"),
+	                rs.getString("tenantName"),
+	                rs.getString("rentAmount"),
+	                rs.getString("electricityBill"),
+	                rs.getString("waterBill"),
+	                rs.getString("facilityBill"),
+	                rs.getString("totalAmount"),
+	                rs.getDate("dueDate"),
+	                rs.getString("status")
+	            };
+	            model.addRow(row);
+	        }
+	    } catch (SQLException e) {
+	        e.printStackTrace();
+	    }
+	}  
+	
+/*	public void populateTable(JTable tableRentBills) {
+	    // Correct SQL query as provided
+	    String query = "SELECT " +
+	            "b.billID, " +
+	            "t.firstName, " +
+	            "t.lastName, " +
+	            "a.rentAmount, " +
+	            "b.electricityBill, " +
+	            "b.waterBill, " +
+	            "f.facilityBill, " +
+	            "b.totalAmount, " +
+	            "b.dueDate, " +
+	            "b.status " +
+	            "FROM " +
+	            "bills b " +
+	            "JOIN tenant t ON b.tenantID = t.tenantID " +
+	            "JOIN apartment a ON b.unitID = a.unitID " +
+	            "JOIN facility f ON b.facilityID = f.facilityID";
+
+	    try (PreparedStatement pstmt = connection.prepareStatement(query);
+	         ResultSet rs = pstmt.executeQuery()) {
+
+	        // Prepare table model
+	        DefaultTableModel model = (DefaultTableModel) tableRentBills.getModel();
+	        model.setRowCount(0); // Clear previous rows
+
+	        // Populate the table with query results
+	        while (rs.next()) {
+	            // Handle NULL values for electricityBill, waterBill, and facilityBill
+	            Double electricityBill = rs.getDouble("electricityBill");
+	            Double waterBill = rs.getDouble("waterBill");
+	            Double facilityBill = rs.getDouble("facilityBill");
+
+	            // If any bill is NULL, set it to 0 (or a custom value like "N/A")
+	            if (rs.wasNull()) {
+	                electricityBill = 0.0;
+	                waterBill = 0.0;
+	                facilityBill = 0.0;
+	            }
+
+	            model.addRow(new Object[]{
+	                rs.getInt("billID"),
+	                rs.getString("firstName") + " " + rs.getString("lastName"), // Concatenate first and last name
+	                rs.getDouble("rentAmount"), // Rent amount
+	                electricityBill, // Electricity bill, handling NULL as 0
+	                waterBill, // Water bill, handling NULL as 0
+	                facilityBill, // Facility bill, handling NULL as 0
+	                rs.getDouble("totalAmount"), // Total amount
+	                rs.getDate("dueDate"), // Due date
+	                rs.getString("status") // Status
+	            });
+	        }
+	    } catch (SQLException e) {
+	        e.printStackTrace();
+	        System.out.println("Failed to populate table with rent bills.");
+	    }
+	}  */		public boolean insertFacilityAndUpdateBill(String billIDStr, String electricityBillStr, String waterBillStr, String facilityName, String facilityBillStr) {
+				// Parsing the string values to appropriate types
+						int billID = Integer.parseInt(billIDStr);
+						double electricityBill = Double.parseDouble(electricityBillStr);
+						double waterBill = Double.parseDouble(waterBillStr);
+						double facilityBill = Double.parseDouble(facilityBillStr);
+						
+						String insertFacilitySQL = "INSERT INTO facility (facilityName, facilityBill) VALUES (?, ?)";
+						String updateBillSQL = "UPDATE bills SET electricityBill = ?, waterBill = ?, facilityID = ? WHERE billID = ?";
+						
+						boolean success = false;
+						int facilityID = -1;
+						
+						try {
+						// Begin transaction
+						connection.setAutoCommit(false);
+						
+						// Insert into facility table
+						try (PreparedStatement stmt = connection.prepareStatement(insertFacilitySQL, Statement.RETURN_GENERATED_KEYS)) {
+						stmt.setString(1, facilityName);
+						stmt.setDouble(2, facilityBill);
+						int affectedRows = stmt.executeUpdate();
+						
+						if (affectedRows == 0) {
+						throw new SQLException("Inserting facility failed, no rows affected.");
+						}
+						
+						// Get the auto-generated facilityID
+						try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
+						if (generatedKeys.next()) {
+						facilityID = generatedKeys.getInt(1);
+						} else {
+						throw new SQLException("Inserting facility failed, no ID obtained.");
+						}
+						}
+						}
+						
+						// Update the bills table with the facilityID
+						try (PreparedStatement stmt = connection.prepareStatement(updateBillSQL)) {
+						stmt.setDouble(1, electricityBill);
+						stmt.setDouble(2, waterBill);
+						stmt.setInt(3, facilityID);
+						stmt.setInt(4, billID);
+						
+						int rowsUpdated = stmt.executeUpdate();
+						if (rowsUpdated > 0) {
+						success = true;
+						} else {
+						throw new SQLException("Updating bill failed, no rows affected.");
+						}
+						}
+						
+						// Commit the transaction
+						connection.commit();
+						
+						} catch (SQLException e) {
+						// Rollback transaction in case of an error
+						try {
+						if (connection != null) {
+						connection.rollback();
+						}
+						} catch (SQLException ex) {
+						ex.printStackTrace();
+						}
+						e.printStackTrace();
+						} finally {
+						// Reset auto-commit to true
+						try {
+						if (connection != null) {
+						connection.setAutoCommit(true);
+						}
+						} catch (SQLException ex) {
+						ex.printStackTrace();
+						}
+						}
+						
+						return success;
+						}
+	
+	
+
+
 }

@@ -137,6 +137,9 @@ public class AddTenantDialog extends JDialog {
         	comboBoxUnitCode.setBounds(183, 238, 215, 26);
         	mainPanel.add(comboBoxUnitCode);
         	
+        	DatabaseConnection dbc = new DatabaseConnection();
+        	dbc.populateAvailableUnitCodes(comboBoxUnitCode);
+        	
         	JLabel lblAdditional = new JLabel("Additional Info:");
         	lblAdditional.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         	lblAdditional.setBounds(34, 339, 109, 19);

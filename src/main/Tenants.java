@@ -142,7 +142,7 @@ public class Tenants extends JFrame {
         tableTenants.setModel(new DefaultTableModel(
         	new Object[][] {},
         	new String[] {
-        		"Tenant ID", "Tenant Name", "Unit Rented", "More" , "Delete"
+        		"Tenant ID", "Tenant Name", "Unit Rented", "" , ""
         	}
         ));
         scrollPane.setViewportView(tableTenants);

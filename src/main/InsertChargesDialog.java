@@ -8,9 +8,13 @@ import java.awt.Font;
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
+
+import dbConnection.DatabaseConnection;
+
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 
@@ -126,6 +130,35 @@ public class InsertChargesDialog extends JDialog {
 			getContentPane().add(buttonPane, BorderLayout.SOUTH);
 			{
 				JButton btnInsert = new JButton("INSERT");
+				btnInsert.addActionListener(new ActionListener() {
+				    public void actionPerformed(ActionEvent e) {
+				        // Get the input data as strings from the text fields
+				        String billIDStr = txtBillID.getText();
+				        String electricityBillStr = txtElectricity.getText();
+				        String waterBillStr = txtWater.getText();
+				        String facilityName = txtFacilityName.getText();
+				        String facilityBillStr = txtFacilityBill.getText();
+
+				        // Create a DatabaseConnection instance
+				        DatabaseConnection dbConnection = new DatabaseConnection();
+
+				        // Call the combined method to insert into the facility table and update the bill
+				        boolean success = dbConnection.insertFacilityAndUpdateBill(billIDStr, electricityBillStr, 
+				                                                                  waterBillStr, facilityName, 
+				                                                                  facilityBillStr);
+				        
+				        if (success) {
+				            JOptionPane.showMessageDialog(InsertChargesDialog.this, "Charges inserted successfully.");
+				            
+				        } else {
+				            JOptionPane.showMessageDialog(InsertChargesDialog.this, "Failed to insert charges.");
+				        }
+				        dispose();
+
+				       
+				    }
+				});
+
 				btnInsert.setBorderPainted(false);
 				btnInsert.setBackground(new Color(183, 183, 47));
 				btnInsert.setActionCommand("OK");

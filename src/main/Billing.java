@@ -22,6 +22,7 @@ import componentsUI.RoundedButton;
 import componentsUI.FrameDragUtility;
 import componentsUI.RoundedPanel;
 import componentsUI.SidebarPanel;
+import dbConnection.DatabaseConnection;
 import componentsUI.BackgroundPanel;
 import javax.swing.JTable;
 import javax.swing.SwingConstants;
@@ -114,22 +115,6 @@ public class Billing extends JFrame {
         tableRentBills = new JTable();
         tableRentBills.setModel(new DefaultTableModel(
         	new Object[][] {
-        		{null, null, null, null, null, null, null, null, null},
-        		{null, null, null, null, null, null, null, null, null},
-        		{null, null, null, null, null, null, null, null, null},
-        		{null, null, null, null, null, null, null, null, null},
-        		{null, null, null, null, null, null, null, null, null},
-        		{null, null, null, null, null, null, null, null, null},
-        		{null, null, null, null, null, null, null, null, null},
-        		{null, null, null, null, null, null, null, null, null},
-        		{null, null, null, null, null, null, null, null, null},
-        		{null, null, null, null, null, null, null, null, null},
-        		{null, null, null, null, null, null, null, null, null},
-        		{null, null, null, null, null, null, null, null, null},
-        		{null, null, null, null, null, null, null, null, null},
-        		{null, null, null, null, null, null, null, null, null},
-        		{null, null, null, null, null, null, null, null, null},
-        		{null, null, null, null, null, null, null, null, null},
         	},
         	new String[] {
         		"Bill ID", "Tenant Name", "Rent Amount", "Electricity Bill", "Water Bill", "Facility Bill", "Total", "Due Date", "Status"
@@ -141,6 +126,10 @@ public class Billing extends JFrame {
         tableRentBills.setShowHorizontalLines(false);
         tableRentBills.setShowVerticalLines(false);
         scrollPane.setViewportView(tableRentBills);
+        
+        DatabaseConnection dbc = new DatabaseConnection();
+        dbc.populateTable(tableRentBills);
+
         
         tableRentBills.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
             @Override
@@ -207,6 +196,8 @@ public class Billing extends JFrame {
         RoundedButton btnRefresh = new RoundedButton("Refresh", 15);
         btnRefresh.addActionListener(new ActionListener() {
         	public void actionPerformed(ActionEvent e) {
+        		
+        		dbc.populateTable(tableRentBills);
         	}
         });
         btnRefresh.setForeground(Color.WHITE);
