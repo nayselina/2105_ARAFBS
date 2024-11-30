@@ -289,14 +289,17 @@ public class Tenants extends JFrame {
 	    TenantDetails tenantDetails = dbConnection.fetchTenantDetails(tenantID);
 
 	    if (tenantDetails != null) {
-	        JOptionPane.showMessageDialog(this, "TENANT DETAILS\n\n" +
+	    	
+	    	new TenantDetailsFrame(tenantDetails);
+	    	
+	  /*      JOptionPane.showMessageDialog(this, "TENANT DETAILS\n\n" +
 	            "Name: " + tenantDetails.getTenantName() + "\n\n" +
 	            "Contact: " + tenantDetails.getContactNum() + "\n\n" +
 	            "Email: " + tenantDetails.getEmail() + "\n\n" +
 	            "Additional Info: " + tenantDetails.getAdditionalInfo() + "\n\n" +
 	            "Unit Code: " + tenantDetails.getUnitCode() + "\n\n" +
-	            "Rent Start: " + tenantDetails.getRentStart() + "\n\n"
-	        );
+	            "Rent Start: " + tenantDetails.getRentStart() + "\n\n"     
+	        );       */
 	    } else {
 	        JOptionPane.showMessageDialog(this, "Details not found for Tenant ID: " + tenantID, "Error", JOptionPane.ERROR_MESSAGE);
 	    }

@@ -117,7 +117,7 @@ public class Billing extends JFrame {
         	new Object[][] {
         	},
         	new String[] {
-        		"Bill ID", "Tenant Name", "Rent Amount", "Electricity Bill", "Water Bill", "Facility Bill", "Total", "Due Date", "Status"
+        		"Bill ID", "Tenant Name", "Rent Amount", "Electricity Bill", "Water Bill", "Facility Bill", "Total", "Balance", "Due Date", "Status"
         	}
         ));
         tableRentBills.setSelectionBackground(new Color(255, 230, 150));

@@ -9,6 +9,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.util.List;
 
 import javax.swing.BorderFactory;
 import javax.swing.JFrame;
@@ -22,6 +23,7 @@ import componentsUI.RoundedButton;
 import componentsUI.FrameDragUtility;
 import componentsUI.RoundedPanel;
 import componentsUI.SidebarPanel;
+import dbConnection.DatabaseConnection;
 import componentsUI.BackgroundPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.JTable;
@@ -128,45 +130,9 @@ public class Pay extends JFrame {
         tablePayBills.setShowHorizontalLines(false);
         tablePayBills.setModel(new DefaultTableModel(
         	new Object[][] {
-        		{null, null, null, null},
-        		{null, null, null, null},
-        		{null, null, null, null},
-        		{null, null, null, null},
-        		{null, null, null, null},
-        		{null, null, null, null},
-        		{null, null, null, null},
-        		{null, null, null, null},
-        		{null, null, null, null},
-        		{null, null, null, null},
-        		{null, null, null, null},
-        		{null, null, null, null},
-        		{null, null, null, null},
-        		{null, null, null, null},
-        		{null, null, null, null},
-        		{null, null, null, null},
-        		{null, null, null, null},
-        		{null, null, null, null},
-        		{null, null, null, null},
-        		{null, null, null, null},
-        		{null, null, null, null},
-        		{null, null, null, null},
-        		{null, null, null, null},
-        		{null, null, null, null},
-        		{null, null, null, null},
-        		{null, null, null, null},
-        		{null, null, null, null},
-        		{null, null, null, null},
-        		{null, null, null, null},
-        		{null, null, null, null},
-        		{null, null, null, null},
-        		{null, null, null, null},
-        		{null, null, null, null},
-        		{null, null, null, null},
-        		{null, null, null, null},
-        		{null, null, null, null},
         	},
         	new String[] {
-        		"Tenant ID", "Tenant Name", "Bill ID", "Total Bill"
+        		"Tenant ID", "Tenant Name", "Bill ID", "Total Bill", "Unpaid Balance"
         	}
         ));
         scrollPane.setViewportView(tablePayBills);
@@ -203,6 +169,13 @@ public class Pay extends JFrame {
         RoundedButton btnPay = new RoundedButton("Make Payment", 15);
         btnPay.addActionListener(new ActionListener() {
         	public void actionPerformed(ActionEvent e) {
+        	    MakePaymentDialog payment = new MakePaymentDialog();
+                
+                // Set modal to block other windows while this dialog is open
+                payment.setModal(true);
+                
+                // Display the dialog
+                payment.setVisible(true);
         	}
         });
         btnPay.setForeground(Color.WHITE);
@@ -238,5 +211,21 @@ public class Pay extends JFrame {
 
             }
         });
+        
+        loadTenantBillDetails();
+	}
+	
+	public void loadTenantBillDetails() {
+	    DatabaseConnection dbConnection = DatabaseConnection.getInstance();
+	    List<Object[]> tenantBillDetails = dbConnection.fetchTenantBillDetails();
+
+	    // Get the table model
+	    DefaultTableModel model = (DefaultTableModel) tablePayBills.getModel();
+	    model.setRowCount(0); // Clear existing data
+
+	    // Populate the table with data
+	    for (Object[] row : tenantBillDetails) {
+	        model.addRow(row);
+	    }
 	}
 }

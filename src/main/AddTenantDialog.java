@@ -190,10 +190,10 @@ public class AddTenantDialog extends JDialog {
 			buttonPane.setLayout(new FlowLayout(FlowLayout.RIGHT));
 			getContentPane().add(buttonPane, BorderLayout.SOUTH);
 			{
-				JButton okButton = new JButton("OK");
-				okButton.setBorderPainted(false);
-				okButton.setBackground(new Color(183, 183, 47));
-				okButton.addActionListener(new ActionListener() {
+				JButton btnAdd = new JButton("ADD");
+				btnAdd.setBorderPainted(false);
+				btnAdd.setBackground(new Color(183, 183, 47));
+				btnAdd.addActionListener(new ActionListener() {
 					public void actionPerformed(ActionEvent e) {
 						String firstName = txtFname.getText();
 				        String lastName = txtLname.getText();
@@ -240,9 +240,9 @@ public class AddTenantDialog extends JDialog {
 		        });
 					
 				
-				okButton.setActionCommand("OK");
-				buttonPane.add(okButton);
-				getRootPane().setDefaultButton(okButton);
+				btnAdd.setActionCommand("OK");
+				buttonPane.add(btnAdd);
+				getRootPane().setDefaultButton(btnAdd);
 			}
 			{
 				JButton cancelButton = new JButton("Cancel");

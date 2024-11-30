@@ -105,6 +105,10 @@ public class MakePaymentDialog extends JDialog {
 			getContentPane().add(buttonPane, BorderLayout.SOUTH);
 			{
 				JButton btnPay = new JButton("PAY");
+				btnPay.addActionListener(new ActionListener() {
+					public void actionPerformed(ActionEvent e) {
+					}
+				});
 				btnPay.setBorderPainted(false);
 				btnPay.setBackground(new Color(183, 183, 47));
 				btnPay.setActionCommand("OK");
