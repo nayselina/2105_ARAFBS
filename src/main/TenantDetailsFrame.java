@@ -81,6 +81,7 @@ public class TenantDetailsFrame extends JFrame {
 
         // Add a close button
         JButton closeButton = new JButton("Close");
+        closeButton.setForeground(Color.WHITE);
         closeButton.setBorderPainted(false);
         closeButton.setBackground(new Color(183, 183, 47));
         closeButton.addActionListener(e -> dispose());

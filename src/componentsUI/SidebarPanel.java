@@ -1,4 +1,4 @@
-package componentsUI;
+ package componentsUI;
 
 import javax.swing.*;
 
@@ -10,7 +10,7 @@ import main.Apartments;
 import main.Billing;
 import main.Homepage;
 import main.Ledger;
-import main.Main;
+import main.Login;
 import main.Pay;
 import main.Tenants;
 
@@ -62,7 +62,7 @@ public class SidebarPanel extends JPanel {
         
         topLeftPanel.add(lblLogo);
         
-        ImageIcon logoIcon = new ImageIcon(Main.class.getResource("/images/AptManager White.png"));
+        ImageIcon logoIcon = new ImageIcon(Login.class.getResource("/images/AptManager White.png"));
         Image img = logoIcon.getImage();
         Image resizedImage = img.getScaledInstance(lblLogo.getWidth(), lblLogo.getHeight(), Image.SCALE_SMOOTH);
         lblLogo.setIcon(new ImageIcon(resizedImage));
@@ -155,7 +155,7 @@ public class SidebarPanel extends JPanel {
             	
             	int previousState = parentFrame.getExtendedState(); 
             	
-                Main login = new Main();
+                Login login = new Login();
                 login.setVisible(true);
                 login.setExtendedState(previousState);
                 parentFrame.dispose();

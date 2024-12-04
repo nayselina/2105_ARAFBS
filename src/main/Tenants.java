@@ -256,7 +256,7 @@ public class Tenants extends JFrame {
         loadTenantData();
 	}
 	
-	private void loadTenantData() {
+	public void loadTenantData() {
 	    DatabaseConnection dbConnection = DatabaseConnection.getInstance();
 	    List<TenantModel> tenantsList = dbConnection.fetchTenants();
 	    

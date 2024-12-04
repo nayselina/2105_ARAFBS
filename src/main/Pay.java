@@ -1,6 +1,7 @@
 package main;
 
 import java.awt.Color;
+
 import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.EventQueue;
@@ -9,11 +10,14 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.text.NumberFormat;
 import java.util.List;
+import java.util.Locale;
 
 import javax.swing.BorderFactory;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.border.EmptyBorder;
@@ -135,6 +139,7 @@ public class Pay extends JFrame {
         		"Tenant ID", "Tenant Name", "Bill ID", "Total Bill", "Unpaid Balance"
         	}
         ));
+        
         scrollPane.setViewportView(tablePayBills);
         
         tablePayBills.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
@@ -166,8 +171,29 @@ public class Pay extends JFrame {
         tblHeader.setForeground(Color.black);
         tblHeader.setReorderingAllowed(false);  
         
-        RoundedButton btnPay = new RoundedButton("Make Payment", 15);
-        btnPay.addActionListener(new ActionListener() {
+        RoundedButton btnRefresh = new RoundedButton("Refresh", 15);
+        btnRefresh.addActionListener(new ActionListener() {
+        	public void actionPerformed(ActionEvent e) {
+        		
+        		loadTenantBillDetails();
+        		
+        		//dbConnection.populateTenantBillTable(tablePayBills);
+        	
+        	   
+        	}
+        });
+     // Refresh the table programmatically after payment
+
+        btnRefresh.setForeground(Color.WHITE);
+        btnRefresh.setBorderPainted(false);
+        btnRefresh.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        btnRefresh.setBackground(new Color(183, 183, 47));
+        btnRefresh.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        btnRefresh.setBounds(840, 15, 80, 30);
+        mainPanel.add(btnRefresh);
+        
+        RoundedButton btnMakePayment = new RoundedButton("Make Payment", 15);
+        btnMakePayment.addActionListener(new ActionListener() {
         	public void actionPerformed(ActionEvent e) {
         	    MakePaymentDialog payment = new MakePaymentDialog();
                 
@@ -178,19 +204,22 @@ public class Pay extends JFrame {
                 payment.setVisible(true);
         	}
         });
-        btnPay.setForeground(Color.WHITE);
-        btnPay.setBorderPainted(false);
-        btnPay.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        btnPay.setBackground(new Color(183, 183, 47));
-        btnPay.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        btnPay.setBounds(797, 15, 123, 30);
-        mainPanel.add(btnPay);
+        btnMakePayment.setForeground(Color.WHITE);
+        btnMakePayment.setBorderPainted(false);
+        btnMakePayment.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        btnMakePayment.setBackground(new Color(183, 183, 47));
+        btnMakePayment.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        btnMakePayment.setBounds(712, 15, 118, 30);
+        mainPanel.add(btnMakePayment);
+        
+        
         
         mainPanel.addComponentListener(new ComponentAdapter() {
             @Override
             public void componentResized(ComponentEvent e) {
                 int frameWidth = mainPanel.getWidth();
-                btnPay.setBounds(frameWidth - 150, 20, 123, 40); // Adjust sidebarPanel height
+                btnMakePayment.setBounds(frameWidth - 240, 20, 118, 40); 
+                  btnRefresh.setBounds(frameWidth - 100, 20, 80, 40); // 
 
 
             }
@@ -212,20 +241,30 @@ public class Pay extends JFrame {
             }
         });
         
-        loadTenantBillDetails();
+       loadTenantBillDetails();
+        
+       
+      
+       
 	}
 	
-	public void loadTenantBillDetails() {
-	    DatabaseConnection dbConnection = DatabaseConnection.getInstance();
-	    List<Object[]> tenantBillDetails = dbConnection.fetchTenantBillDetails();
+		public void loadTenantBillDetails() {
+	    DatabaseConnection dbc = DatabaseConnection.getInstance();
+	    List<Object[]> tenantBillDetails = dbc.fetchTenantBillDetails();
 
 	    // Get the table model
 	    DefaultTableModel model = (DefaultTableModel) tablePayBills.getModel();
 	    model.setRowCount(0); // Clear existing data
+	    model.fireTableDataChanged();  // Refresh the table v
+	    tablePayBills.repaint();  // Forces a repaint of the table
+
 
 	    // Populate the table with data
 	    for (Object[] row : tenantBillDetails) {
 	        model.addRow(row);
 	    }
-	}
+	} 
+	
+	
+
 }

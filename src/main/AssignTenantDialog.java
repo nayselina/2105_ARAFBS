@@ -30,7 +30,7 @@ import javax.swing.JComboBox;
 import javax.swing.DefaultComboBoxModel;
 import java.util.Date;
 
-public class AddTenantDialog extends JDialog {
+public class AssignTenantDialog extends JDialog {
 
 	private static final long serialVersionUID = 1L;
 	private final JPanel contentPanel = new JPanel();
@@ -47,7 +47,7 @@ public class AddTenantDialog extends JDialog {
 	 */
 	public static void main(String[] args) {
 		try {
-			AddTenantDialog dialog = new AddTenantDialog();
+			AssignTenantDialog dialog = new AssignTenantDialog();
 			dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 			dialog.setVisible(true);
 		} catch (Exception e) {
@@ -58,7 +58,7 @@ public class AddTenantDialog extends JDialog {
 	/**
 	 * Create the dialog.
 	 */
-	public AddTenantDialog() {
+	public AssignTenantDialog() {
 		setBounds(100, 100, 466, 750);
 		getContentPane().setLayout(new BorderLayout());
 		contentPanel.setBackground(Color.WHITE);
@@ -89,52 +89,52 @@ public class AddTenantDialog extends JDialog {
         	
         	JLabel lblFname = new JLabel("First Name:");
         	lblFname.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        	lblFname.setBounds(34, 30, 69, 19);
+        	lblFname.setBounds(34, 81, 69, 19);
         	
         	txtFname = new JTextField();
         	txtFname.setColumns(10);
-        	txtFname.setBounds(183, 30, 215, 26);
+        	txtFname.setBounds(183, 79, 215, 26);
         	mainPanel.add(txtFname);
         	mainPanel.add(lblFname);
         	
         	JLabel lblLname = new JLabel("Last Name:");
         	lblLname.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        	lblLname.setBounds(34, 80, 69, 19);
+        	lblLname.setBounds(34, 132, 69, 19);
         	mainPanel.add(lblLname);
         	
         	txtLname = new JTextField();
-        	txtLname.setBounds(183, 80, 215, 26);
+        	txtLname.setBounds(183, 130, 215, 26);
         	mainPanel.add(txtLname);
         	txtLname.setColumns(10);
         	
         	JLabel lblContact = new JLabel("Contact No.");
         	lblContact.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        	lblContact.setBounds(34, 132, 79, 19);
+        	lblContact.setBounds(34, 179, 79, 19);
         	mainPanel.add(lblContact);
         	
         	txtContactNo = new JTextField();
         	txtContactNo.setColumns(10);
-        	txtContactNo.setBounds(183, 142, 215, 26);
+        	txtContactNo.setBounds(183, 177, 215, 26);
         	mainPanel.add(txtContactNo);
         	
         	JLabel lblEmail = new JLabel("Email:");
         	lblEmail.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        	lblEmail.setBounds(34, 188, 69, 19);
+        	lblEmail.setBounds(34, 240, 69, 19);
         	mainPanel.add(lblEmail);
         	
         	txtEmail = new JTextField();
         	txtEmail.setColumns(10);
-        	txtEmail.setBounds(183, 188, 215, 26);
+        	txtEmail.setBounds(183, 238, 215, 26);
         	mainPanel.add(txtEmail);
         	
         	JLabel lblUnitCode = new JLabel("Unit Code:");
         	lblUnitCode.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        	lblUnitCode.setBounds(34, 240, 69, 19);
+        	lblUnitCode.setBounds(34, 32, 69, 19);
         	mainPanel.add(lblUnitCode);
         	
         	JComboBox comboBoxUnitCode = new JComboBox();
         	comboBoxUnitCode.setModel(new DefaultComboBoxModel(new String[] {"", "SOL-101", "SOL-102", "SOL-103", "SOL-104", "SOL-105", "SOL-106", "SOL-107", "SOL-108", "COP-101", "COP-102", "COP-103", "COP-104", "COP-105", "COP-106", "COP-107", "COP-108", "FAM-101", "FAM-102", "FAM-103", "FAM-104", "FAM-105", "FAM-106", "FAM-107", "FAM-108"}));
-        	comboBoxUnitCode.setBounds(183, 238, 215, 26);
+        	comboBoxUnitCode.setBounds(183, 30, 215, 26);
         	mainPanel.add(comboBoxUnitCode);
         	
         	DatabaseConnection dbc = new DatabaseConnection();
@@ -178,10 +178,10 @@ public class AddTenantDialog extends JDialog {
             rentEndChooser.setBounds(183, 509, 215, 26);
             mainPanel.add(rentEndChooser);
             
-            JLabel lblAddTenant = new JLabel("ADD TENANT");
-            lblAddTenant.setFont(new Font("Segoe UI", Font.PLAIN, 18));
-            lblAddTenant.setBounds(14, 37, 167, 35);
-            contentPanel.add(lblAddTenant);
+            JLabel lblAssignTenant = new JLabel("ASSIGN TENANT");
+            lblAssignTenant.setFont(new Font("Segoe UI", Font.PLAIN, 18));
+            lblAssignTenant.setBounds(14, 37, 167, 35);
+            contentPanel.add(lblAssignTenant);
      
         
 		{
@@ -190,10 +190,10 @@ public class AddTenantDialog extends JDialog {
 			buttonPane.setLayout(new FlowLayout(FlowLayout.RIGHT));
 			getContentPane().add(buttonPane, BorderLayout.SOUTH);
 			{
-				JButton btnAdd = new JButton("ADD");
-				btnAdd.setBorderPainted(false);
-				btnAdd.setBackground(new Color(183, 183, 47));
-				btnAdd.addActionListener(new ActionListener() {
+				JButton btnAssign = new JButton("ASSIGN\r\n");
+				btnAssign.setBorderPainted(false);
+				btnAssign.setBackground(new Color(183, 183, 47));
+				btnAssign.addActionListener(new ActionListener() {
 					public void actionPerformed(ActionEvent e) {
 						String firstName = txtFname.getText();
 				        String lastName = txtLname.getText();
@@ -226,11 +226,11 @@ public class AddTenantDialog extends JDialog {
 
 		                // Display success or error message based on result
 		                if (result.equals("Tenant and related data saved successfully.")) {
-		                    JOptionPane.showMessageDialog(AddTenantDialog.this,
+		                    JOptionPane.showMessageDialog(AssignTenantDialog.this,
 		                            result,  // Success message
 		                            "Success", JOptionPane.INFORMATION_MESSAGE); // Show as Information
 		                } else {
-		                    JOptionPane.showMessageDialog(AddTenantDialog.this,
+		                    JOptionPane.showMessageDialog(AssignTenantDialog.this,
 		                            result,  // Error or failure message
 		                            "Error", JOptionPane.ERROR_MESSAGE);  // Show as Error
 		                }  
@@ -240,9 +240,9 @@ public class AddTenantDialog extends JDialog {
 		        });
 					
 				
-				btnAdd.setActionCommand("OK");
-				buttonPane.add(btnAdd);
-				getRootPane().setDefaultButton(btnAdd);
+				btnAssign.setActionCommand("OK");
+				buttonPane.add(btnAssign);
+				getRootPane().setDefaultButton(btnAssign);
 			}
 			{
 				JButton cancelButton = new JButton("Cancel");

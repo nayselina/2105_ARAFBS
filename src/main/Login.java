@@ -54,7 +54,7 @@ import componentsUI.HoverIconButton;
 import java.awt.Cursor;
 
 
-public class Main extends JFrame {
+public class Login extends JFrame {
 
     private static final long serialVersionUID = 1L;
     private ChangingBackgroundPanel contentPane;
@@ -77,7 +77,7 @@ public class Main extends JFrame {
         EventQueue.invokeLater(new Runnable() {
             public void run() {
                 try {
-                    Main frame = new Main();
+                    Login frame = new Login();
                     frame.setVisible(true);
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -86,7 +86,7 @@ public class Main extends JFrame {
         });
     }
 
-    public Main() {
+    public Login() {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setBounds(100, 100, 1300, 800);
         contentPane = new ChangingBackgroundPanel(imagePaths.get(currentImageIndex));
@@ -289,11 +289,11 @@ public class Main extends JFrame {
         loginPanel.add(loginButton);
         
         JLabel lblLogo = new JLabel("");
-        lblLogo.setIcon(new ImageIcon(Main.class.getResource("/images/AptManager-default.png")));
+        lblLogo.setIcon(new ImageIcon(Login.class.getResource("/images/AptManager-default.png")));
         lblLogo.setBounds(52, 43, 334, 69);
         loginPanel.add(lblLogo);
         
-        ImageIcon logoIcon = new ImageIcon(Main.class.getResource("/images/AptManager-default.png"));
+        ImageIcon logoIcon = new ImageIcon(Login.class.getResource("/images/AptManager-default.png"));
         Image img = logoIcon.getImage();
         Image resizedImage = img.getScaledInstance(lblLogo.getWidth(), lblLogo.getHeight(), Image.SCALE_SMOOTH);
         lblLogo.setIcon(new ImageIcon(resizedImage));
@@ -336,6 +336,7 @@ public class Main extends JFrame {
                 	int previousState = getExtendedState();
                     // Navigate to Homepage class
                     Homepage homepage = new Homepage();
+                    
                     homepage.setVisible(true);
                     homepage.setExtendedState(previousState);
                 
@@ -377,6 +378,7 @@ public class Main extends JFrame {
             }
         });
         
+        
         JPanel minMaxClosePanel = new JPanel();
         minMaxClosePanel.setBounds(1210, 0, 90, 26);
         headerPanel.add(minMaxClosePanel);
@@ -405,6 +407,7 @@ public class Main extends JFrame {
                 }
         	}
         });
+        
         minMaxClosePanel.setLayout(new GridLayout(0, 3, 0, 0));
         
         HoverIconButton btnMinimize = new HoverIconButton("/images/minimize.png", "/images/light_minimize.png", "/images/light_minimize.png");

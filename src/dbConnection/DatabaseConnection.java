@@ -3,11 +3,11 @@ package dbConnection;
 import java.sql.Connection;
 
 
-
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.NumberFormat;
 import java.text.ParseException; // Add this import
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -16,13 +16,18 @@ import javax.swing.JComboBox;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
 
+import model.Apartment;
+import model.LedgerRecord;
+import model.Tenant;
 import model.TenantDetails;
+
 import model.TenantModel;
 
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
+import java.util.Locale;
 
 public class DatabaseConnection {
     private static final String DB_URL = "jdbc:mysql://localhost:3306/arafbsdb";
@@ -89,6 +94,23 @@ public class DatabaseConnection {
         }
         return total;
         
+    }
+    
+    public int getTotalOccupants() {
+        int totalOccupants = 0;
+        String query = "SELECT SUM(occupants) AS total_occupants FROM apartment";
+        
+        try (PreparedStatement stmt = connection.prepareStatement(query);
+             ResultSet rs = stmt.executeQuery()) {
+
+            if (rs.next()) {
+                totalOccupants = rs.getInt("total_occupants");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return totalOccupants;
     }
     
     public void populateAvailableUnitCodes(JComboBox<String> comboBoxUnitCode) {
@@ -429,6 +451,7 @@ public class DatabaseConnection {
 	        LEFT JOIN facility f ON b.facilityID = f.facilityID
 	        LEFT JOIN payment p ON b.billID = p.billID  -- Join with the payment table to calculate the totalBalance
 	        GROUP BY b.billID;
+	        
 	    """;
 
 	    try {
@@ -615,6 +638,7 @@ public class DatabaseConnection {
 	               CONCAT('₱', FORMAT(b.totalBalance, 2)) AS formatBalance
 	        FROM tenant t
 	        JOIN bills b ON t.tenantID = b.tenantID
+	        WHERE b.totalBalance > 0
 	    """;
 
 	    try (PreparedStatement stmt = connection.prepareStatement(query);
@@ -636,9 +660,227 @@ public class DatabaseConnection {
 
 	    return tenantBillDetails;
 	}
+	
+/*	public void populateTenantBillTable(JTable table) {
+	    String query = """
+	        SELECT t.tenantID, CONCAT(t.firstName, ' ', t.lastName) AS fullName, 
+	               b.billID, b.totalAmount, b.totalBalance
+	        FROM tenant t
+	        JOIN bills b ON t.tenantID = b.tenantID
+	    """;
+
+	    DefaultTableModel tableModel = (DefaultTableModel) table.getModel();
+	    tableModel.setRowCount(0); // Clear existing rows
+
+	    try (PreparedStatement statement = connection.prepareStatement(query);
+	         ResultSet resultSet = statement.executeQuery()) {
+
+	        NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(new Locale("en", "PH"));
+	        currencyFormat.setCurrency(java.util.Currency.getInstance("PHP"));
+
+	        while (resultSet.next()) {
+	            Object[] row = {
+	                resultSet.getInt("tenantID"),
+	                resultSet.getString("fullName"),
+	                resultSet.getInt("billID"),
+	                currencyFormat.format(resultSet.getDouble("totalAmount")),
+	                currencyFormat.format(resultSet.getDouble("totalBalance"))
+	            };
+	            tableModel.addRow(row);
+	        }
+	    } catch (SQLException e) {
+	        e.printStackTrace();
+	    }
+	}
+
+          */
+	
+	
+	
+	
+	public String processPayment(int billID, double paymentAmount, java.sql.Date paymentDate) {
+	    String resultMessage = "";
+	    Connection conn = getConnection();
+	    try {
+	        conn.setAutoCommit(false); // Start transaction
+
+	        // Fetch tenantID and totalBalance before payment
+	        String fetchDetailsQuery = "SELECT tenantID, totalBalance FROM bills WHERE billID = ?";
+	        int tenantID = 0;
+	        double totalBalance = 0.0;
+	        try (PreparedStatement fetchStmt = conn.prepareStatement(fetchDetailsQuery)) {
+	            fetchStmt.setInt(1, billID);
+	            ResultSet rs = fetchStmt.executeQuery();
+	            if (rs.next()) {
+	                tenantID = rs.getInt("tenantID");
+	                totalBalance = rs.getDouble("totalBalance");
+	            } else {
+	                throw new SQLException("Bill ID not found.");
+	            }
+	        }
+
+	        // Insert payment and retrieve paymentID
+	        int paymentID;
+	        String insertPaymentQuery = "INSERT INTO payment (billID, tenantID, paymentAmount, paymentDate) VALUES (?, ?, ?, ?)";
+	        try (PreparedStatement paymentStmt = conn.prepareStatement(insertPaymentQuery, Statement.RETURN_GENERATED_KEYS)) {
+	            paymentStmt.setInt(1, billID);
+	            paymentStmt.setInt(2, tenantID);
+	            paymentStmt.setDouble(3, paymentAmount);
+	            paymentStmt.setDate(4, paymentDate);
+	            paymentStmt.executeUpdate();
+	            ResultSet rs = paymentStmt.getGeneratedKeys();
+	            if (rs.next()) {
+	                paymentID = rs.getInt(1);
+	            } else {
+	                throw new SQLException("Failed to retrieve paymentID.");
+	            }
+	        }
+
+	        // Update the totalBalance for the bill after payment
+	        String updateBalanceQuery = """
+	            UPDATE bills b
+	            LEFT JOIN payment p ON b.billID = p.billID
+	            SET b.totalBalance = (
+	                b.totalAmount - IFNULL((SELECT SUM(p.paymentAmount) FROM payment p WHERE p.billID = b.billID), 0)
+	            )
+	            WHERE b.billID = ?;
+	        """;
+	        try (PreparedStatement updateBalanceStmt = conn.prepareStatement(updateBalanceQuery)) {
+	            updateBalanceStmt.setInt(1, billID);
+	            updateBalanceStmt.executeUpdate();
+	        }
+
+	        // Retrieve the updated totalBalance from the bills table
+	        String getUpdatedBalanceQuery = "SELECT totalBalance FROM bills WHERE billID = ?";
+	        double updatedTotalBalance = 0.0;
+	        try (PreparedStatement getBalanceStmt = conn.prepareStatement(getUpdatedBalanceQuery)) {
+	            getBalanceStmt.setInt(1, billID);
+	            ResultSet rs = getBalanceStmt.executeQuery();
+	            if (rs.next()) {
+	                updatedTotalBalance = rs.getDouble("totalBalance");
+	            } else {
+	                throw new SQLException("Failed to retrieve updated totalBalance.");
+	            }
+	        }
+
+	        // Update bill status
+	        String status = updatedTotalBalance <= 0 ? "Paid" : "Partially Paid";
+	        String updateBillQuery = "UPDATE bills SET status = ? WHERE billID = ?";
+	        try (PreparedStatement updateStmt = conn.prepareStatement(updateBillQuery)) {
+	            updateStmt.setString(1, status);
+	            updateStmt.setInt(2, billID);
+	            updateStmt.executeUpdate();
+	        }
+
+	        // Insert into ledger with the updated totalBalance after payment
+	        String insertLedgerQuery = "INSERT INTO ledger (tenantID, billID, paymentID, balanceAfterPayment) VALUES (?, ?, ?, ?)";
+	        try (PreparedStatement ledgerStmt = conn.prepareStatement(insertLedgerQuery)) {
+	            ledgerStmt.setInt(1, tenantID);
+	            ledgerStmt.setInt(2, billID);
+	            ledgerStmt.setInt(3, paymentID);
+	            ledgerStmt.setDouble(4, updatedTotalBalance); // Insert the updated totalBalance into ledger
+	            ledgerStmt.executeUpdate();  //
+	        }
+
+	        conn.commit(); // Commit transaction
+	        resultMessage = "Payment processed successfully. Payment ID: " + paymentID + ", Status: " + status;
+
+	    } catch (SQLException ex) {
+	        if (conn != null) {
+	            try {
+	                conn.rollback();
+	            } catch (SQLException rollbackEx) {
+	                resultMessage = "Error rolling back transaction: " + rollbackEx.getMessage();
+	            }
+	        }
+	        resultMessage = "Error processing payment: " + ex.getMessage();
+	    } finally {
+	        try {
+	            conn.setAutoCommit(true);
+	        } catch (SQLException ex) {
+	            resultMessage += "\nError resetting auto-commit: " + ex.getMessage();
+	        }
+	    }
+	    return resultMessage;
+	}
+	
+	public List<Tenant> getTenants() {
+        List<Tenant> tenants = new ArrayList<>();
+        String query = "SELECT tenantID, firstName, lastName FROM tenant";
+        try (PreparedStatement stmt = connection.prepareStatement(query)) {
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                int tenantID = rs.getInt("tenantID");
+                String firstName = rs.getString("firstName");
+                String lastName = rs.getString("lastName");
+                tenants.add(new Tenant(tenantID, firstName, lastName)); // Concatenate in the constructor
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return tenants;
+    }
+	
+	
+	public List<LedgerRecord> getLedgerData(int tenantID) {
+	    List<LedgerRecord> ledgerData = new ArrayList<>();
+	    String query = "SELECT p.paymentDate, l.billID, l.paymentID, " +
+	                   "       CONCAT('₱', FORMAT(p.paymentAmount, 2)) AS formattedPaymentAmount, " +
+	                   "       CONCAT('₱', FORMAT(l.balanceAfterPayment, 2)) AS formattedBalanceAfterPayment " +
+	                   "FROM ledger l " +
+	                   "JOIN payment p ON l.paymentID = p.paymentID " +
+	                   "WHERE l.tenantID = ?";
+	    try (PreparedStatement stmt = connection.prepareStatement(query)) {
+	        stmt.setInt(1, tenantID);
+	        ResultSet rs = stmt.executeQuery();
+	        while (rs.next()) {
+	            Date paymentDate = rs.getDate("paymentDate");
+	            int billID = rs.getInt("billID");
+	            int paymentID = rs.getInt("paymentID");
+	            String paymentAmount = rs.getString("formattedPaymentAmount"); // Updated to String
+	            String balanceAfterPayment = rs.getString("formattedBalanceAfterPayment"); // Updated to String
+	            ledgerData.add(new LedgerRecord(paymentDate, billID, paymentID, paymentAmount, balanceAfterPayment));
+	        }
+	    } catch (SQLException e) {
+	        e.printStackTrace();
+	    }
+	    return ledgerData;
+	}
+	
+	public List<Apartment> getAllApartments() {
+        List<Apartment> apartments = new ArrayList<>();
+        String query = "SELECT unitID, unitCode, unitType, description, rentAmount, status FROM apartment";
+
+        try (PreparedStatement stmt = connection.prepareStatement(query);
+             ResultSet rs = stmt.executeQuery()) {
+
+            while (rs.next()) {
+                int unitID = rs.getInt("unitID");
+                String unitCode = rs.getString("unitCode");
+                String unitType = rs.getString("unitType");
+                String description = rs.getString("description");
+                double rentAmount = rs.getDouble("rentAmount");
+                String status = rs.getString("status");
+
+                apartments.add(new Apartment(unitID, unitCode, unitType, description, rentAmount, status));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return apartments;
+    }
 
 	
 	
+	
 
+	
+	
+	
+	
+	
+	
 
+	
 }

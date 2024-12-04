@@ -8,12 +8,16 @@ import java.awt.Font;
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
 import java.awt.event.ActionListener;
+import java.sql.Date;
 import java.awt.event.ActionEvent;
 import com.toedter.calendar.JDateChooser;
+
+import dbConnection.DatabaseConnection;
 
 public class MakePaymentDialog extends JDialog {
 
@@ -107,7 +111,29 @@ public class MakePaymentDialog extends JDialog {
 				JButton btnPay = new JButton("PAY");
 				btnPay.addActionListener(new ActionListener() {
 					public void actionPerformed(ActionEvent e) {
-					}
+						try {
+				            // Retrieve input values
+				            int billID = Integer.parseInt(txtBillID.getText().trim()); // Parse Bill ID to int
+				            double paymentAmount = Double.parseDouble(txtElectricity.getText().trim()); // Parse Payment Amount to double
+				            Date paymentDate = new java.sql.Date(paymentDateChooser.getDate().getTime()); // Convert Payment Date to java.sql.Date
+
+				            // Call the processPayment method in DatabaseConnection
+				            String resultMessage = DatabaseConnection.getInstance().processPayment(billID, paymentAmount, paymentDate);
+
+				            // Show result message
+				            JOptionPane.showMessageDialog(MakePaymentDialog.this, resultMessage, "Payment Status", JOptionPane.INFORMATION_MESSAGE);
+				        } catch (NumberFormatException ex) {
+				            JOptionPane.showMessageDialog(MakePaymentDialog.this, "Invalid number format: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+				        } catch (IllegalArgumentException ex) {
+				            JOptionPane.showMessageDialog(MakePaymentDialog.this, "Invalid date format. Use yyyy-MM-dd.", "Error", JOptionPane.ERROR_MESSAGE);
+				        } catch (Exception ex) {
+				            JOptionPane.showMessageDialog(MakePaymentDialog.this, "Error processing payment: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+				        }
+						
+						dispose();
+				    }
+						
+					
 				});
 				btnPay.setBorderPainted(false);
 				btnPay.setBackground(new Color(183, 183, 47));

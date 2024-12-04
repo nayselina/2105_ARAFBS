@@ -30,5 +30,8 @@ public class TenantDetails {
     public String getAdditionalInfo() { return additionalInfo; }
     public String getUnitCode() { return unitCode; }
     public Date getRentStart() { return rentStart; }
-
 }
+
+
+ 
+
