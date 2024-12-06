@@ -201,9 +201,7 @@ public class AddTenantDialog extends JDialog {
 				        String email = txtEmail.getText();
 				        String additionalInfo = txtAreaAdditional.getText();
 				        String unitCode = comboBoxUnitCode.getSelectedItem().toString();
-				        String strOccupants = txtOccupants.getText();
-				        
-				        
+				        String strOccupants = txtOccupants.getText();				        				        
 
 				       Date rentStartDate = dateRentedChooser.getDate();
 				       String strRentStartDate = null;
@@ -223,7 +221,7 @@ public class AddTenantDialog extends JDialog {
 				        
 				        DatabaseConnection dbc = new DatabaseConnection();
 		                String result = dbc.addTenant(firstName, lastName, contactNo, email, unitCode, strOccupants, additionalInfo, strRentStartDate, strRentEndDate);
-
+		                String History = dbc.addTenanthisotry(firstName, lastName, contactNo, email, unitCode, strOccupants, additionalInfo, strRentStartDate, strRentEndDate);
 		                // Display success or error message based on result
 		                if (result.equals("Tenant and related data saved successfully.")) {
 		                    JOptionPane.showMessageDialog(AddTenantDialog.this,
@@ -237,8 +235,7 @@ public class AddTenantDialog extends JDialog {
 
 		                dispose(); // Close dialog after showing the message
 		            }
-		        });
-					
+		        });					
 				
 				btnAdd.setActionCommand("OK");
 				buttonPane.add(btnAdd);

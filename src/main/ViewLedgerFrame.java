@@ -8,6 +8,8 @@ import java.awt.event.*;
 import java.util.List;
 import model.LedgerRecord;
 import dbConnection.DatabaseConnection;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 public class ViewLedgerFrame extends JFrame {
     private int tenantID;
@@ -17,11 +19,10 @@ public class ViewLedgerFrame extends JFrame {
     private JTable ledgerTable;
     
     private static final long serialVersionUID = 1L;
-	private final JPanel contentPanel = new JPanel();
+    private final JPanel contentPanel = new JPanel();
 
     public ViewLedgerFrame(int tenantID, String fullName) {
         this.tenantID = tenantID;
-     //   this.tenantName = firstName + " " + lastName; // Concatenate first and last name
         this.fullName = fullName;
         initialize();
     }
@@ -30,9 +31,9 @@ public class ViewLedgerFrame extends JFrame {
         setTitle("Tenant Ledger - " + fullName);
         setBounds(100, 100, 600, 381);
         getContentPane().setLayout(null);
-		setLocationRelativeTo(null); // Center the window
-	
-		JPanel panel = new JPanel();
+        setLocationRelativeTo(null); // Center the window
+    
+        JPanel panel = new JPanel();
         panel.setBackground(Color.WHITE);
         panel.setBounds(0, 0, 722, 671);
         getContentPane().add(panel);
@@ -42,7 +43,6 @@ public class ViewLedgerFrame extends JFrame {
         lblRentalLedger.setBounds(14, 37, 167, 35);
         panel.add(lblRentalLedger);
    
-
         // Create the ledger table
         ledgerTable = new JTable();
         ledgerTable.setRowHeight(20);
@@ -58,7 +58,7 @@ public class ViewLedgerFrame extends JFrame {
         // Create a table model and populate the ledger table
         DefaultTableModel ledgerModel = new DefaultTableModel(
                 new Object[][]{},
-                new String[]{"Payment Date", "Bill ID", "Payment ID", "Payment Amount", "Balance After Payment"}
+                new String[]{"Payment Date", "Advance Payment", "Balance", "Month of Payment"}
         );
         ledgerTable.setModel(ledgerModel);
         
@@ -85,10 +85,9 @@ public class ViewLedgerFrame extends JFrame {
         for (LedgerRecord record : ledgerData) {
             Object[] row = {
                     record.getPaymentDate(),
-                    record.getBillID(),
-                    record.getPaymentID(),
                     record.getPaymentAmount(),
-                    record.getBalanceAfterPayment()
+                    record.getBalanceAfterPayment(),
+                    getMonthOfPayment(record.getPaymentDate())  // Calculate and add the month
             };
             ledgerModel.addRow(row);
         }
@@ -96,17 +95,14 @@ public class ViewLedgerFrame extends JFrame {
         panel.add(scrollPane);
 
         // Add scrollPane to center of the frame
-     //   getContentPane().add(scrollPane);
-        
         JLabel label = new JLabel("Tenant ID: " + tenantID);
         label.setBounds(14, 111, 75, 20);
         label.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-     //   getContentPane().add(label);
         panel.add(label);
+        
         JLabel label_1 = new JLabel("Tenant Name: " + fullName);
         label_1.setBounds(14, 83, 160, 20);
         label_1.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-     //   getContentPane().add(label_1);
         panel.add(label_1);
         
         JPanel headerPanel = new JPanel();
@@ -132,13 +128,17 @@ public class ViewLedgerFrame extends JFrame {
         closeButton.setBackground(new Color(183, 183, 47));
         closeButton.setBounds(0, 648, 722, 23);
         panel.add(closeButton);
-        
-        
 
         // Set frame properties
         setSize(738, 710);
         setLocationRelativeTo(null);  // Center the frame
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setVisible(true);
+    }
+
+    // Helper method to extract the month from the payment date
+    private String getMonthOfPayment(Date paymentDate) {
+        SimpleDateFormat sdf = new SimpleDateFormat("MMMM yyyy");  // Format for Month Year
+        return sdf.format(paymentDate);
     }
 }

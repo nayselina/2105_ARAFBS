@@ -870,9 +870,59 @@ public class DatabaseConnection {
 
         return apartments;
     }
+	
+			public String addTenanthisotry(String firstName, String lastName, String contactNo, String email, String unitCode, 
+		            String occupants, String additionalInfo, String rentStartDate, String rentEndDate) {
+		String sqlInsertTenant = """
+		INSERT INTO tenanthistory (firstName, lastName, contactNum, email, additionalInfo, unitID)
+		VALUES (?, ?, ?, ?, ?, (SELECT unitID FROM apartment WHERE unitCode = ?))
+		""";
+		
+		String sqlInsertRentalContract = """
+		INSERT INTO rentalContract (tenantID, rentStart, rentEnd, occupants)
+		VALUES ((SELECT tenantID FROM tenant WHERE contactNum = ? AND email = ?), ?, ?, ?)
+		""";
+		
+		String sqlUpdateUnitStatus = """
+		UPDATE apartment SET status = 'Occupied' WHERE unitCode = ?
+		""";
+		
+		try (PreparedStatement psTenant = connection.prepareStatement(sqlInsertTenant);
+		PreparedStatement psRental = connection.prepareStatement(sqlInsertRentalContract);
+		PreparedStatement psUpdateUnit = connection.prepareStatement(sqlUpdateUnitStatus)) {
+		
+		// Insert tenant data
+		psTenant.setString(1, firstName);
+		psTenant.setString(2, lastName);
+		psTenant.setString(3, contactNo);
+		psTenant.setString(4, email);
+		psTenant.setString(5, additionalInfo);
+		psTenant.setString(6, unitCode);
+		psTenant.executeUpdate();
+		
+		// Insert rental contract data
+		psRental.setString(1, contactNo);
+		psRental.setString(2, email);
+		psRental.setString(3, rentStartDate);
+		psRental.setString(4, rentEndDate);
+		psRental.setString(5, occupants);
+		psRental.executeUpdate();
+		
+		// Update apartment unit status
+		psUpdateUnit.setString(1, unitCode);
+		psUpdateUnit.executeUpdate();
+		
+		return "Tenant and related data saved successfully.";
+		} catch (SQLException e) {
+		e.printStackTrace();
+		return "Failed to add tenant: " + e.getMessage();
+		}
+}
+
 
 	
-	
+
+
 	
 
 	

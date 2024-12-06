@@ -1,11 +1,14 @@
 package main;
 
 import java.awt.Color;
-
 import java.awt.Component;
 import java.awt.EventQueue;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -28,6 +31,7 @@ import javax.swing.JOptionPane;
 import java.awt.Font;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.JTextArea;
 import javax.swing.SwingConstants;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
@@ -39,8 +43,6 @@ import dbConnection.DatabaseConnection;
 import model.TenantDetails;
 import model.TenantModel;
 
-
-
 import javax.swing.table.TableCellEditor;
 
 import java.awt.Cursor;
@@ -50,37 +52,31 @@ import java.awt.event.ActionEvent;
 
 public class Tenants extends JFrame {
 
-	private static final long serialVersionUID = 1L;
-	private JPanel contentPane;
-	private BackgroundPanel photoPanel;
-	private JTable tableTenants;
+    private static final long serialVersionUID = 1L;
+    private JPanel contentPane;
+    private BackgroundPanel photoPanel;
+    private JTable tableTenants;
 
-	/**
-	 * Launch the application.
-	 */
-	public static void main(String[] args) {
-		EventQueue.invokeLater(new Runnable() {
-			public void run() {
-				try {
-					Tenants frame = new Tenants();
-					frame.setVisible(true);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		});
-	}
+    public static void main(String[] args) {
+        EventQueue.invokeLater(new Runnable() {
+            public void run() {
+                try {
+                    Tenants frame = new Tenants();
+                    frame.setVisible(true);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+    }
 
-	/**
-	 * Create the frame.
-	 */
-	public Tenants() {
-		setTitle("Apartment Rentals and Facilities Billing System");
+    public Tenants() {
+        setTitle("Apartment Rentals and Facilities Billing System");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setBounds(100, 100, 1300, 800); // Fixed size
         setLocationRelativeTo(null); // Center the window
         setUndecorated(true); // Remove the border
-        
+
         new FrameDragUtility(this);
 
         contentPane = new JPanel();
@@ -88,21 +84,21 @@ public class Tenants extends JFrame {
         contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
         setContentPane(contentPane);
         contentPane.setLayout(null);
-        
+
         Header header = new Header(this);
         header.setBounds(0, 0, 1300, 26);
         getContentPane().add(header);
-        
+
         SidebarPanel sidebar = new SidebarPanel(this, "Tenants");
         sidebar.setBounds(0, 129, 251, 671);
         getContentPane().add(sidebar);
-        
+
         RoundedPanel mainPanel = new RoundedPanel(30);
         mainPanel.setBounds(301, 76, 949, 724);
         mainPanel.setBackground(Color.WHITE);
         mainPanel.setLayout(null); // Absolute positioning
         contentPane.add(mainPanel);
-        
+
         photoPanel = new BackgroundPanel("/images/interior1.png");
         photoPanel.setBackground(Color.RED);
         photoPanel.setBounds(251, 26, 1049, 774);
@@ -114,16 +110,15 @@ public class Tenants extends JFrame {
                 int frameHeight = getHeight(); // Get the new frame height
                 int frameWidth = getWidth();
                 photoPanel.setBounds(300, 26, frameWidth - 300, frameHeight - 26); // Adjust sidebarPanel height
-
             }
-        });  
-        
+        });
+
         JPanel stPanel = new JPanel();
         stPanel.setBackground(Color.LIGHT_GRAY);
         stPanel.setBounds(0, 61, 949, 663);
         mainPanel.add(stPanel);
         stPanel.setLayout(null);
-        
+
         JScrollPane scrollPane = new JScrollPane();
         scrollPane.setBackground(Color.WHITE);
         scrollPane.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
@@ -131,71 +126,64 @@ public class Tenants extends JFrame {
         scrollPane.setFont(new Font("Tahoma", Font.PLAIN, 11));
         scrollPane.setBounds(0, 0, 949, 663);
         stPanel.add(scrollPane);
-        
+
         tableTenants = new JTable();
         tableTenants.setSelectionBackground(new Color(255, 230, 150));
-        
+
         tableTenants.setRowHeight(30);
         tableTenants.setShowVerticalLines(false);
         tableTenants.setShowHorizontalLines(false);
         tableTenants.setFont(new Font("Segoe UI", Font.PLAIN, 18));
         tableTenants.setModel(new DefaultTableModel(
-        	new Object[][] {},
-        	new String[] {
-        		"Tenant ID", "Tenant Name", "Unit Rented", "" , ""
-        	}
+                new Object[][] {},
+                new String[] {
+                        "Tenant ID", "Tenant Name", "Unit Rented", "More", "Delete", "Invoice" // Added "Invoice" column
+                }
         ));
         scrollPane.setViewportView(tableTenants);
-        
+
         tableTenants.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
             @Override
             public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
                 Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
                 if (!isSelected) {
-                    c.setBackground(row % 2 == 0 ? Color.WHITE : new Color(240, 238, 226) );
+                    c.setBackground(row % 2 == 0 ? Color.WHITE : new Color(240, 238, 226));
                 }
                 setHorizontalAlignment(SwingConstants.CENTER); // Center align text
                 return c;
             }
         });
-        
+
         this.addComponentListener(new ComponentAdapter() {
             @Override
             public void componentResized(ComponentEvent e) {
                 int frameHeight = getHeight(); // Get the new frame height
                 int frameWidth = getWidth();
                 stPanel.setBounds(0, 76, frameWidth - 401, frameHeight - 76);
-                scrollPane.setBounds(0, 0, frameWidth - 401, frameHeight - 76); 
-                tableTenants.setBounds(0, 0, frameWidth - 401, frameHeight - 76); 
-
+                scrollPane.setBounds(0, 0, frameWidth - 401, frameHeight - 76);
+                tableTenants.setBounds(0, 0, frameWidth - 401, frameHeight - 76);
             }
-        });  
-        
+        });
 
         // Table Header Style
         JTableHeader tblHeader = tableTenants.getTableHeader();
         tblHeader.setFont(new Font("Segoe UI", Font.BOLD, 20));
         tblHeader.setBackground(new Color(247, 247, 231));
         tblHeader.setForeground(Color.black);
-        tblHeader.setReorderingAllowed(false);         
-        
+        tblHeader.setReorderingAllowed(false);
+
         JLabel lblTenants = new JLabel("Tenants");
         lblTenants.setFont(new Font("Segoe UI", Font.BOLD, 28));
         lblTenants.setBounds(15, 11, 265, 35);
         mainPanel.add(lblTenants);
-        
-      //  JButton btnAddTenant = new JButton("Add Tenant");
+
         RoundedButton btnAddTenant = new RoundedButton("Add Tenant", 15);
         btnAddTenant.addActionListener(new ActionListener() {
-        	public void actionPerformed(ActionEvent e) {
-        		AddTenantDialog addTenantDialog = new AddTenantDialog();
-                
-                // Set modal to block other windows while this dialog is open
+            public void actionPerformed(ActionEvent e) {
+                AddTenantDialog addTenantDialog = new AddTenantDialog();
                 addTenantDialog.setModal(true);
-                
-                // Display the dialog
                 addTenantDialog.setVisible(true);
-        	}
+            }
         });
         btnAddTenant.setForeground(Color.WHITE);
         btnAddTenant.setBorderPainted(false);
@@ -204,15 +192,12 @@ public class Tenants extends JFrame {
         btnAddTenant.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         btnAddTenant.setBounds(726, 15, 100, 30);
         mainPanel.add(btnAddTenant);
-        
-     //   JButton btnRefresh = new JButton("Refresh");
+
         RoundedButton btnRefresh = new RoundedButton("Refresh", 15);
         btnRefresh.addActionListener(new ActionListener() {
-        	public void actionPerformed(ActionEvent e) {
-        		
-        		loadTenantData();
-        		
-        	}
+            public void actionPerformed(ActionEvent e) {
+                loadTenantData();
+            }
         });
         btnRefresh.setForeground(Color.WHITE);
         btnRefresh.setBorderPainted(false);
@@ -222,187 +207,280 @@ public class Tenants extends JFrame {
         btnRefresh.setBounds(840, 15, 80, 30);
         mainPanel.add(btnRefresh);
         
-        mainPanel.addComponentListener(new ComponentAdapter() {
-            @Override
-            public void componentResized(ComponentEvent e) {
-                int frameWidth = mainPanel.getWidth();
-                btnAddTenant.setBounds(frameWidth - 215, 20, 100, 40); // Adjust sidebarPanel height
-                btnRefresh.setBounds(frameWidth - 100, 20, 80, 40); // Adjust sidebarPanel height
+        RoundedButton btnAddTenant_1 = new RoundedButton("Tenant History", 15);
+        btnAddTenant_1.addActionListener(new ActionListener() {
+        	public void actionPerformed(ActionEvent e) {
+        		showTenantHistory();
+        	}
+        });
+        btnAddTenant_1.setForeground(Color.WHITE);
+        btnAddTenant_1.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        btnAddTenant_1.setBorderPainted(false);
+        btnAddTenant_1.setBackground(new Color(183, 183, 47));
+        btnAddTenant_1.setBounds(616, 16, 100, 30);
+        mainPanel.add(btnAddTenant_1);
 
-
-            }
-        });  
-        
-        this.addComponentListener(new ComponentAdapter() {
-            @Override
-            public void componentResized(ComponentEvent e) {
-                int frameHeight = getHeight(); // Get the new frame height
-                int frameWidth = getWidth();
-                mainPanel.setBounds(351, 76, frameWidth - 401, frameHeight - 76); // Adjust sidebarPanel height
-
-            }
-        });  
-        
-    /*    this.addComponentListener(new ComponentAdapter() {
-            @Override
-            public void componentResized(ComponentEvent e) {
-                int frameHeight = getHeight(); // Get the new frame height
-                int frameWidth = getWidth();
-                mainPanel.setBounds(401, 126, frameWidth - 451, frameHeight - 123); // Adjust sidebarPanel height
-
-            }
-        });  */
-        
         loadTenantData();
-	}
-	
-	public void loadTenantData() {
-	    DatabaseConnection dbConnection = DatabaseConnection.getInstance();
-	    List<TenantModel> tenantsList = dbConnection.fetchTenants();
-	    
-	    DefaultTableModel model = (DefaultTableModel) tableTenants.getModel();
+    }
 
-	    // Clear existing rows
-	    model.setRowCount(0);
+    public void loadTenantData() {
+        DatabaseConnection dbConnection = DatabaseConnection.getInstance();
+        List<TenantModel> tenantsList = dbConnection.fetchTenants();
 
-	    for (TenantModel tenant : tenantsList) {
-	        model.addRow(new Object[]{
-	            tenant.getTenantID(),
-	            tenant.getTenantName(),
-	            tenant.getUnitCode(),
-	            "More",
-	            "Delete"
-	        });
-	    }
+        DefaultTableModel model = (DefaultTableModel) tableTenants.getModel();
 
-	    if (model.getColumnCount() >= 5) {
-	        tableTenants.getColumnModel().getColumn(3).setCellRenderer(new ButtonRenderer());
-	        tableTenants.getColumnModel().getColumn(4).setCellRenderer(new ButtonRenderer());
+        // Clear existing rows
+        model.setRowCount(0);
 
-	        tableTenants.getColumnModel().getColumn(3).setCellEditor(new ButtonEditor(new JButton("More"), this::showTenantDetails));
-	        tableTenants.getColumnModel().getColumn(4).setCellEditor(new ButtonEditor(new JButton("Delete"), this::deleteTenant));
-	    }
-	}
-	
-	private void showTenantDetails(int tenantID) {
-	    DatabaseConnection dbConnection = DatabaseConnection.getInstance();
-	    TenantDetails tenantDetails = dbConnection.fetchTenantDetails(tenantID);
+        for (TenantModel tenant : tenantsList) {
+            model.addRow(new Object[]{
+                    tenant.getTenantID(),
+                    tenant.getTenantName(),
+                    tenant.getUnitCode(),
+                    "More",
+                    "Delete",
+                    "Invoice"  // Add the new Invoice button
+            });
+        }
 
-	    if (tenantDetails != null) {
-	    	
-	    	new TenantDetailsFrame(tenantDetails);
-	    	
-	  /*      JOptionPane.showMessageDialog(this, "TENANT DETAILS\n\n" +
-	            "Name: " + tenantDetails.getTenantName() + "\n\n" +
-	            "Contact: " + tenantDetails.getContactNum() + "\n\n" +
-	            "Email: " + tenantDetails.getEmail() + "\n\n" +
-	            "Additional Info: " + tenantDetails.getAdditionalInfo() + "\n\n" +
-	            "Unit Code: " + tenantDetails.getUnitCode() + "\n\n" +
-	            "Rent Start: " + tenantDetails.getRentStart() + "\n\n"     
-	        );       */
-	    } else {
-	        JOptionPane.showMessageDialog(this, "Details not found for Tenant ID: " + tenantID, "Error", JOptionPane.ERROR_MESSAGE);
-	    }
-	}
-	
-/*	private void deleteTenant(int tenantID) {
-	    int confirm = JOptionPane.showConfirmDialog(this,
-	            "Are you sure you want to delete this tenant?",
-	            "Confirm Deletion",
-	            JOptionPane.YES_NO_OPTION);
+        if (model.getColumnCount() >= 6) { // Updated to check for 6 columns
+            tableTenants.getColumnModel().getColumn(3).setCellRenderer(new ButtonRenderer());
+            tableTenants.getColumnModel().getColumn(4).setCellRenderer(new ButtonRenderer());
+            tableTenants.getColumnModel().getColumn(5).setCellRenderer(new ButtonRenderer()); // Renderer for the Invoice button
 
-	    if (confirm == JOptionPane.YES_OPTION) {
-	        DatabaseConnection dbConnection = DatabaseConnection.getInstance();
-	        boolean isDeleted = dbConnection.deleteTenant(tenantID);
+            tableTenants.getColumnModel().getColumn(3).setCellEditor(new ButtonEditor(new JButton("More"), this::showTenantDetails));
+            tableTenants.getColumnModel().getColumn(4).setCellEditor(new ButtonEditor(new JButton("Delete"), this::deleteTenant));
+            tableTenants.getColumnModel().getColumn(5).setCellEditor(new ButtonEditor(new JButton("Invoice"), this::generateInvoice)); // Editor for Invoice button
+        }
+    }
 
-	        if (isDeleted) { 
-	        	
-	        	int unitID = dbConnection.getUnitIdForTenant(tenantID);
+    
 
-	            // Now update the status of the unit to "Available"
-	            boolean isUnitUpdated = dbConnection.updateUnitStatusToAvailable(unitID);
+   
 
-	            reattachButtonListeners();
-	            JOptionPane.showMessageDialog(this, "Tenant deleted successfully.");
-	        } else {
-	            JOptionPane.showMessageDialog(this, "Failed to delete tenant.", "Error", JOptionPane.ERROR_MESSAGE);
-	        }       
-	    }
-	}     */
-	
-	
-	private void deleteTenant(int tenantID) {
-	    // Ask for confirmation before proceeding with deletion
-	    int confirm = JOptionPane.showConfirmDialog(this,
-	            "Are you sure you want to delete this tenant?",
-	            "Confirm Deletion",
-	            JOptionPane.YES_NO_OPTION);
+   
 
-	    if (confirm == JOptionPane.YES_OPTION) {
-	        // Get the DatabaseConnection instance
-	        DatabaseConnection dbConnection = DatabaseConnection.getInstance();
-	        
-	        // Call the method that deletes the tenant and updates the unit status
-	        boolean isSuccess = dbConnection.deleteTenantAndUpdateUnitStatus(tenantID);
+    public class ButtonRenderer extends JButton implements TableCellRenderer {
+        public ButtonRenderer() {
+            setOpaque(true);
+        }
 
-	        // Check if the operation was successful
-	        if (isSuccess) {
-	            reattachButtonListeners();
-	            JOptionPane.showMessageDialog(this, "Tenant deleted and unit status updated successfully.");
-	        } else {
-	            JOptionPane.showMessageDialog(this, "Failed to delete tenant or update unit status.", "Error", JOptionPane.ERROR_MESSAGE);
-	        }
-	    }
-	}
+        @Override
+        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+            setText((value == null) ? "" : value.toString());
+            return this;
+        }
+    }
 
-	private void reattachButtonListeners() {
-	    // Reattach listeners for "More" and "Delete" buttons
-	    tableTenants.getColumnModel().getColumn(3).setCellEditor(new ButtonEditor(new JButton("More"), this::showTenantDetails));
-	    tableTenants.getColumnModel().getColumn(4).setCellEditor(new ButtonEditor(new JButton("Delete"), this::deleteTenant));
-	}
-	
-	
-	public class ButtonRenderer extends JButton implements TableCellRenderer {
-	    public ButtonRenderer() {
-	        setOpaque(true);
-	    }
+    public class ButtonEditor extends AbstractCellEditor implements TableCellEditor {
+        private JButton button;
+        private Consumer<Integer> action;
 
-	    @Override
-	    public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-	        setText((value == null) ? "" : value.toString());
-	        return this;
-	    }
-	}
-	
-	public class ButtonEditor extends AbstractCellEditor implements TableCellEditor {
-	    private JButton button;
-	    private Consumer<Integer> action;
+        public ButtonEditor(JButton button, Consumer<Integer> action) {
+            this.button = button;
+            this.action = action;
+            button.addActionListener(e -> {
+                JTable table = (JTable) button.getParent();
+                int row = table.getSelectedRow();
+                int tenantID = (int) table.getValueAt(row, 0);
+                action.accept(tenantID); // Call the method with tenantID
+                fireEditingStopped();
+            });
+        }
 
-	    public ButtonEditor(JButton button, Consumer<Integer> action) {
-	        this.button = button;
-	        this.action = action;
-	        button.addActionListener(e -> {
-	            JTable table = (JTable) button.getParent();
-	            int row = table.getSelectedRow();
-	            int tenantID = (int) table.getValueAt(row, 0);
-	            action.accept(tenantID); // Call the method with tenantID
-	            fireEditingStopped();
-	        });
-	    }
+        @Override
+        public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
+            button.setText((value == null) ? "" : value.toString());
+            return button;
+        }
 
-	    @Override
-	    public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
-	        button.setText((value == null) ? "" : value.toString());
-	        return button;
-	    }
+        @Override
+        public Object getCellEditorValue() {
+            return button.getText();
+        }
+    }
+    
+    private void generateInvoice(int tenantID) {
+        String sql = """
+            SELECT CONCAT(t.firstName, ' ', t.lastName) AS tenantName, 
+                   a.unitCode, a.rentAmount 
+            FROM tenant t
+            JOIN apartment a ON t.unitID = a.unitID
+            WHERE t.tenantID = ?
+        """;
 
-	    @Override
-	    public Object getCellEditorValue() {
-	        return button.getText();
-	    }
-	}
-	
-	
-	
-	
+        try (PreparedStatement ps = DatabaseConnection.getInstance().getConnection().prepareStatement(sql)) {
+            ps.setInt(1, tenantID);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    String tenantName = rs.getString("tenantName");
+                    String unitCode = rs.getString("unitCode");
+                    double rentAmount = rs.getDouble("rentAmount");
+
+                    double serviceCharges = 100.0; // Example fixed service charge
+                    double totalAmount = rentAmount + serviceCharges;
+
+                    // Generate and display the receipt
+                    String receipt = generateReceipt(tenantName, unitCode, rentAmount, serviceCharges, totalAmount);
+
+                    JTextArea textArea = new JTextArea(receipt);
+                    textArea.setFont(new Font("Monospaced", Font.PLAIN, 14));
+                    textArea.setEditable(false);
+                    JScrollPane scrollPane = new JScrollPane(textArea);
+                    scrollPane.setPreferredSize(new java.awt.Dimension(400, 300));
+
+                    JOptionPane.showMessageDialog(this, scrollPane, "Invoice for Tenant: " + tenantName, JOptionPane.INFORMATION_MESSAGE);
+                } else {
+                    JOptionPane.showMessageDialog(this, "No details found for Tenant ID: " + tenantID, "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Error retrieving invoice details: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+
+
+    private String generateReceipt(String tenantName, String unitCode, double rentAmount, double serviceCharges, double totalAmount) {
+        StringBuilder receipt = new StringBuilder();
+        receipt.append("----------- Invoice -------------\n");
+        receipt.append("Tenant Name: ").append(tenantName).append("\n");
+        receipt.append("Unit Rented: ").append(unitCode).append("\n");
+        receipt.append("Rent Amount: $").append(String.format("%.2f", rentAmount)).append("\n");
+        receipt.append("Service Charges: $").append(String.format("%.2f", serviceCharges)).append("\n");
+        receipt.append("Total Amount: $").append(String.format("%.2f", totalAmount)).append("\n");
+        receipt.append("--------------------------------\n");
+        receipt.append("Thank you for your payment!\n");
+        return receipt.toString();
+    }
+
+    private void showTenantDetails(int tenantID) {
+        String sql = """
+            SELECT t.tenantID, CONCAT(t.firstName, ' ', t.lastName) AS tenantName, 
+                   t.contactNum, t.email, t.additionalInfo, a.unitCode 
+            FROM tenant t
+            JOIN apartment a ON t.unitID = a.unitID
+            WHERE t.tenantID = ?
+        """;
+
+        try (PreparedStatement ps = DatabaseConnection.getInstance().getConnection().prepareStatement(sql)) {
+            ps.setInt(1, tenantID);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    // Retrieve tenant details
+                    String tenantName = rs.getString("tenantName");
+                    String contactNum = rs.getString("contactNum");
+                    String email = rs.getString("email");
+                    String additionalInfo = rs.getString("additionalInfo");
+                    String unitCode = rs.getString("unitCode");
+
+                    // Generate detailed information
+                    String details = generateTenantDetails(tenantName, contactNum, email, additionalInfo, unitCode);
+
+                    // Display in a dialog
+                    JTextArea textArea = new JTextArea(details);
+                    textArea.setFont(new Font("Monospaced", Font.PLAIN, 14));
+                    textArea.setEditable(false);
+                    JScrollPane scrollPane = new JScrollPane(textArea);
+                    scrollPane.setPreferredSize(new java.awt.Dimension(400, 300));
+
+                    JOptionPane.showMessageDialog(this, scrollPane, "Details for Tenant: " + tenantName, JOptionPane.INFORMATION_MESSAGE);
+                } else {
+                    JOptionPane.showMessageDialog(this, "No details found for Tenant ID: " + tenantID, "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Error retrieving tenant details: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+    
+    private String generateTenantDetails(String tenantName, String contactNum, String email, String additionalInfo, String unitCode) {
+        StringBuilder details = new StringBuilder();
+        details.append("----------- Tenant Details -----------\n");
+        details.append("Name: ").append(tenantName).append("\n");
+        details.append("Contact Number: ").append(contactNum).append("\n");
+        details.append("Email: ").append(email).append("\n");
+        details.append("Unit Code: ").append(unitCode).append("\n");
+        details.append("Additional Info: ").append(additionalInfo).append("\n");
+        details.append("--------------------------------------\n");
+        return details.toString();
+    }
+
+
+    private void deleteTenant(int tenantID) {
+        int confirm = JOptionPane.showConfirmDialog(
+            this,
+            "Are you sure you want to delete this tenant?",
+            "Confirm Deletion",
+            JOptionPane.YES_NO_OPTION
+        );
+
+        if (confirm == JOptionPane.YES_OPTION) {
+            DatabaseConnection dbConnection = DatabaseConnection.getInstance();
+            boolean isDeleted = dbConnection.deleteTenantAndUpdateUnitStatus(tenantID);
+
+            if (isDeleted) {
+                JOptionPane.showMessageDialog(this, "Tenant deleted successfully.");
+                loadTenantData(); // Refresh the table after deletion
+            } else {
+                JOptionPane.showMessageDialog(this, "Failed to delete tenant.", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
+    
+    private List<Object[]> fetchTenantHistory() {
+        String sql = """
+            SELECT tenantID, firstName, lastName, contactNum, email, additionalInfo, unitID
+            FROM tenanthistory
+        """;
+
+        List<Object[]> tenantHistory = new ArrayList<>();
+
+        try (PreparedStatement ps = DatabaseConnection.getInstance().getConnection().prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                tenantHistory.add(new Object[]{
+                    rs.getInt("tenantID"),
+                    rs.getString("firstName"),
+                    rs.getString("lastName"),
+                    rs.getString("contactNum"),
+                    rs.getString("email"),
+                    rs.getString("additionalInfo"),
+                    rs.getInt("unitID")
+                });
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Error fetching tenant history: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+
+        return tenantHistory;
+    }
+    
+    private void showTenantHistory() {
+        List<Object[]> tenantHistory = fetchTenantHistory();
+
+        // Define column names
+        String[] columnNames = { "Tenant ID", "First Name", "Last Name", "Contact No.", "Email", "Additional Info", "Unit ID" };
+
+        // Populate data into table model
+        DefaultTableModel model = new DefaultTableModel(columnNames, 0);
+        for (Object[] row : tenantHistory) {
+            model.addRow(row);
+        }
+
+        // Create a table and add it to a scrollable pane
+        JTable table = new JTable(model);
+        table.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        table.setRowHeight(25);
+        JScrollPane scrollPane = new JScrollPane(table);
+
+        // Display in a dialog
+        JOptionPane.showMessageDialog(this, scrollPane, "Tenant History", JOptionPane.INFORMATION_MESSAGE);
+    }
+
+
 }
