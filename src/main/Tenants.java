@@ -217,7 +217,7 @@ public class Tenants extends JFrame {
         btnAddTenant_1.setFont(new Font("Segoe UI", Font.BOLD, 12));
         btnAddTenant_1.setBorderPainted(false);
         btnAddTenant_1.setBackground(new Color(183, 183, 47));
-        btnAddTenant_1.setBounds(616, 16, 100, 30);
+        btnAddTenant_1.setBounds(589, 16, 127, 30);
         mainPanel.add(btnAddTenant_1);
 
         loadTenantData();
@@ -317,11 +317,14 @@ public class Tenants extends JFrame {
                     String unitCode = rs.getString("unitCode");
                     double rentAmount = rs.getDouble("rentAmount");
 
-                    double serviceCharges = 100.0; // Example fixed service charge
-                    double totalAmount = rentAmount + serviceCharges;
+                    // Replace these with actual database queries or computations.
+                    double electricityBill = 200.0;
+                    double waterBill = 150.0;
+                    double facilityBill = 100.0;
+                    double totalAmount = rentAmount + electricityBill + waterBill + facilityBill;
 
                     // Generate and display the receipt
-                    String receipt = generateReceipt(tenantName, unitCode, rentAmount, serviceCharges, totalAmount);
+                    String receipt = generateReceipt(tenantName, unitCode, rentAmount, electricityBill, waterBill, facilityBill, totalAmount);
 
                     JTextArea textArea = new JTextArea(receipt);
                     textArea.setFont(new Font("Monospaced", Font.PLAIN, 14));
@@ -340,16 +343,16 @@ public class Tenants extends JFrame {
         }
     }
 
-
-
-    private String generateReceipt(String tenantName, String unitCode, double rentAmount, double serviceCharges, double totalAmount) {
+    private String generateReceipt(String tenantName, String unitCode, double rentAmount, double electricityBill, double waterBill, double facilityBill, double totalAmount) {
         StringBuilder receipt = new StringBuilder();
         receipt.append("----------- Invoice -------------\n");
         receipt.append("Tenant Name: ").append(tenantName).append("\n");
         receipt.append("Unit Rented: ").append(unitCode).append("\n");
-        receipt.append("Rent Amount: $").append(String.format("%.2f", rentAmount)).append("\n");
-        receipt.append("Service Charges: $").append(String.format("%.2f", serviceCharges)).append("\n");
-        receipt.append("Total Amount: $").append(String.format("%.2f", totalAmount)).append("\n");
+        receipt.append("Rent Amount: ₱").append(String.format("%.2f", rentAmount)).append("\n");
+        receipt.append("Electricity Bill: ₱").append(String.format("%.2f", electricityBill)).append("\n");
+        receipt.append("Water Bill: ₱").append(String.format("%.2f", waterBill)).append("\n");
+        receipt.append("Facility Bill: ₱").append(String.format("%.2f", facilityBill)).append("\n");
+        receipt.append("Total Amount: ₱").append(String.format("%.2f", totalAmount)).append("\n");
         receipt.append("--------------------------------\n");
         receipt.append("Thank you for your payment!\n");
         return receipt.toString();
