@@ -388,246 +388,131 @@ public class DatabaseConnection {
         return false;  // Return false if the operation failed
     }
 	
-	//public void populateTable(JTable tableRentBills) {
-	/*	String query = "SELECT " +
-                "b.billID, " +
-                "CONCAT(t.firstName, ' ', t.lastName) AS tenantName, " +
-                "CONCAT('₱', FORMAT(a.rentAmount, 2)) AS rentAmount, " +
-                "IF(b.electricityBill IS NULL, 'Awaiting Data', CONCAT('₱', FORMAT(b.electricityBill, 2))) AS electricityBill, " +
-                "IF(b.waterBill IS NULL, 'Awaiting Data', CONCAT('₱', FORMAT(b.waterBill, 2))) AS waterBill, " +
-                "IF(b.totalAmount = 0, 'Paid', CONCAT('₱', FORMAT(b.totalAmount, 2))) AS totalAmount, " +
-                "b.dueDate, " +
-                "b.status, " +
-                "IF(f.facilityBill IS NULL, 'Awaiting Data', CONCAT('₱', FORMAT(f.facilityBill, 2))) AS facilityBill " +
-                "FROM bills b " +
-                "JOIN tenant t ON b.tenantID = t.tenantID " +
-                "JOIN apartment a ON b.unitID = a.unitID " +
-                "LEFT JOIN facility f ON b.facilityID = f.facilityID";  // Use LEFT JOIN to include all bills   */
-		
 
 	
 	public void populateTable(JTable tableRentBills) {
-	    // Update totalAmount and total balance in the database
-		String updateQuery = """
-		        UPDATE bills b
-		        JOIN apartment a ON b.unitID = a.unitID
-		        LEFT JOIN facility f ON b.facilityID = f.facilityID
-		        SET b.totalAmount = (
-		            a.rentAmount + 
-		            IFNULL(b.electricityBill, 0) + 
-		            IFNULL(b.waterBill, 0) + 
-		            IFNULL(f.facilityBill, 0)
-		        )
-		    """;
+	    String updateQuery = """
+	        UPDATE bills b
+	        JOIN apartment a ON b.unitID = a.unitID
+	        LEFT JOIN facility f ON b.facilityID = f.facilityID
+	        SET b.totalAmount = (
+	            a.rentAmount +
+	            IFNULL(b.electricityBill, 0) +
+	            IFNULL(b.waterBill, 0) +
+	            IFNULL(f.facilityBill, 0) -
+	            IFNULL(b.advancePayment, 0)
+	        )
+	    """;
 
-		    // Step 2: Update totalBalance by subtracting the sum of payments for each billID
-		String updateBalanceQuery = """
-			    UPDATE bills b
-			    LEFT JOIN payment p ON b.billID = p.billID
-			    SET b.totalBalance = (
-			        b.totalAmount - IFNULL((SELECT SUM(p.paymentAmount) FROM payment p WHERE p.billID = b.billID), 0)
-			    );
-			""";
+	    String updateBalanceQuery = """
+	        UPDATE bills b
+	        LEFT JOIN payment p ON b.billID = p.billID
+	        SET b.totalBalance = (
+	            b.totalAmount - IFNULL((SELECT SUM(p.paymentAmount) FROM payment p WHERE p.billID = b.billID), 0)
+	        );
+	    """;
 
-
-
-	    // Select query to fetch updated data
-		// Select query to fetch updated data
 	    String selectQuery = """
 	        SELECT 
 	            b.billID, 
 	            CONCAT(t.firstName, ' ', t.lastName) AS tenantName, 
 	            CONCAT('₱', FORMAT(a.rentAmount, 2)) AS rentAmount, 
-	            IF(b.electricityBill IS NULL, 'Awaiting Data', CONCAT('₱', FORMAT(b.electricityBill, 2))) AS electricityBill, 
-	            IF(b.waterBill IS NULL, 'Awaiting Data', CONCAT('₱', FORMAT(b.waterBill, 2))) AS waterBill, 
-	            IF(f.facilityBill IS NULL, 'Awaiting Data', CONCAT('₱', FORMAT(f.facilityBill, 2))) AS facilityBill, 
+	            IFNULL(CONCAT('₱', FORMAT(b.electricityBill, 2)), 'Awaiting Data') AS electricityBill, 
+	            IFNULL(CONCAT('₱', FORMAT(b.waterBill, 2)), 'Awaiting Data') AS waterBill, 
+	            IFNULL(CONCAT('₱', FORMAT(f.facilityBill, 2)), 'Awaiting Data') AS facilityBill, 
+	            IFNULL(CONCAT('₱', FORMAT(b.advancePayment, 2)), 'No Advance Payment') AS advancePayment,
 	            CONCAT('₱', FORMAT(b.totalAmount, 2)) AS totalAmount, 
-	            CONCAT('₱', FORMAT(b.totalBalance, 2)) AS totalBalance,  -- Display the balance
+	            CONCAT('₱', FORMAT(b.totalBalance, 2)) AS totalBalance,
 	            b.dueDate, 
 	            b.status 
 	        FROM bills b 
 	        JOIN tenant t ON b.tenantID = t.tenantID 
 	        JOIN apartment a ON b.unitID = a.unitID 
 	        LEFT JOIN facility f ON b.facilityID = f.facilityID
-	        LEFT JOIN payment p ON b.billID = p.billID  -- Join with the payment table to calculate the totalBalance
 	        GROUP BY b.billID;
-	        
 	    """;
 
 	    try {
-	        // Execute update query
-	        try (PreparedStatement updateStmt = connection.prepareStatement(updateQuery)) {
-	            updateStmt.executeUpdate();
-	        }
-	        
-	     // Step 2: Execute update query for totalBalance
-	        try (PreparedStatement updateBalanceStmt = connection.prepareStatement(updateBalanceQuery)) {
-	            updateBalanceStmt.executeUpdate();
-	        }
+	        connection.prepareStatement(updateQuery).executeUpdate();
+	        connection.prepareStatement(updateBalanceQuery).executeUpdate();
 
-	        // Execute select query and populate table
-	        try (PreparedStatement selectStmt = connection.prepareStatement(selectQuery);
-	             ResultSet rs = selectStmt.executeQuery()) {
+	        PreparedStatement selectStmt = connection.prepareStatement(selectQuery);
+	        ResultSet rs = selectStmt.executeQuery();
+	        DefaultTableModel model = (DefaultTableModel) tableRentBills.getModel();
+	        model.setRowCount(0);
 
-	            DefaultTableModel model = (DefaultTableModel) tableRentBills.getModel();
-	            model.setRowCount(0); // Clear the table
-
-	            while (rs.next()) {
-	                Object[] row = {
-	                    rs.getInt("billID"),
-	                    rs.getString("tenantName"),
-	                    rs.getString("rentAmount"),
-	                    rs.getString("electricityBill"),
-	                    rs.getString("waterBill"),
-	                    rs.getString("facilityBill"),
-	                    rs.getString("totalAmount"),
-	                    rs.getString("totalBalance"), // Display the balance
-	                    rs.getDate("dueDate"),
-	                    rs.getString("status")
-	                };
-	                model.addRow(row);
-	            }
+	        while (rs.next()) {
+	            Object[] row = {
+	                rs.getInt("billID"),
+	                rs.getString("tenantName"),
+	                rs.getString("rentAmount"),
+	                rs.getString("electricityBill"),
+	                rs.getString("waterBill"),
+	                rs.getString("facilityBill"),
+	                rs.getString("advancePayment"),
+	                rs.getString("totalAmount"),
+	                rs.getString("totalBalance"),
+	                rs.getDate("dueDate"),
+	                rs.getString("status")
+	            };
+	            model.addRow(row);
 	        }
 	    } catch (SQLException e) {
 	        e.printStackTrace();
 	    }
 	}
 
-	
-/*	public void populateTable(JTable tableRentBills) {
-	    // Correct SQL query as provided
-	    String query = "SELECT " +
-	            "b.billID, " +
-	            "t.firstName, " +
-	            "t.lastName, " +
-	            "a.rentAmount, " +
-	            "b.electricityBill, " +
-	            "b.waterBill, " +
-	            "f.facilityBill, " +
-	            "b.totalAmount, " +
-	            "b.dueDate, " +
-	            "b.status " +
-	            "FROM " +
-	            "bills b " +
-	            "JOIN tenant t ON b.tenantID = t.tenantID " +
-	            "JOIN apartment a ON b.unitID = a.unitID " +
-	            "JOIN facility f ON b.facilityID = f.facilityID";
 
-	    try (PreparedStatement pstmt = connection.prepareStatement(query);
-	         ResultSet rs = pstmt.executeQuery()) {
+	public boolean insertFacilityAndUpdateBill(String billIDStr, String electricityBillStr, String waterBillStr, 
+            String advancePaymentStr, String facilityName, String facilityBillStr) {
+int billID = Integer.parseInt(billIDStr);
+double electricityBill = Double.parseDouble(electricityBillStr);
+double waterBill = Double.parseDouble(waterBillStr);
+double advancePayment = Double.parseDouble(advancePaymentStr);
+double facilityBill = Double.parseDouble(facilityBillStr);
 
-	        // Prepare table model
-	        DefaultTableModel model = (DefaultTableModel) tableRentBills.getModel();
-	        model.setRowCount(0); // Clear previous rows
+String insertFacilitySQL = "INSERT INTO facility (facilityName, facilityBill) VALUES (?, ?)";
+String updateBillSQL = "UPDATE bills SET electricityBill = ?, waterBill = ?, advancePayment = ?, facilityID = ? WHERE billID = ?";
 
-	        // Populate the table with query results
-	        while (rs.next()) {
-	            // Handle NULL values for electricityBill, waterBill, and facilityBill
-	            Double electricityBill = rs.getDouble("electricityBill");
-	            Double waterBill = rs.getDouble("waterBill");
-	            Double facilityBill = rs.getDouble("facilityBill");
+boolean success = false;
+try {
+connection.setAutoCommit(false);
 
-	            // If any bill is NULL, set it to 0 (or a custom value like "N/A")
-	            if (rs.wasNull()) {
-	                electricityBill = 0.0;
-	                waterBill = 0.0;
-	                facilityBill = 0.0;
-	            }
+PreparedStatement stmt = connection.prepareStatement(insertFacilitySQL, Statement.RETURN_GENERATED_KEYS);
+stmt.setString(1, facilityName);
+stmt.setDouble(2, facilityBill);
+stmt.executeUpdate();
 
-	            model.addRow(new Object[]{
-	                rs.getInt("billID"),
-	                rs.getString("firstName") + " " + rs.getString("lastName"), // Concatenate first and last name
-	                rs.getDouble("rentAmount"), // Rent amount
-	                electricityBill, // Electricity bill, handling NULL as 0
-	                waterBill, // Water bill, handling NULL as 0
-	                facilityBill, // Facility bill, handling NULL as 0
-	                rs.getDouble("totalAmount"), // Total amount
-	                rs.getDate("dueDate"), // Due date
-	                rs.getString("status") // Status
-	            });
-	        }
-	    } catch (SQLException e) {
-	        e.printStackTrace();
-	        System.out.println("Failed to populate table with rent bills.");
-	    }
-	}  */		public boolean insertFacilityAndUpdateBill(String billIDStr, String electricityBillStr, String waterBillStr, String facilityName, String facilityBillStr) {
-				// Parsing the string values to appropriate types
-						int billID = Integer.parseInt(billIDStr);
-						double electricityBill = Double.parseDouble(electricityBillStr);
-						double waterBill = Double.parseDouble(waterBillStr);
-						double facilityBill = Double.parseDouble(facilityBillStr);
-						
-						String insertFacilitySQL = "INSERT INTO facility (facilityName, facilityBill) VALUES (?, ?)";
-						String updateBillSQL = "UPDATE bills SET electricityBill = ?, waterBill = ?, facilityID = ? WHERE billID = ?";
-						
-						boolean success = false;
-						int facilityID = -1;
-						
-						try {
-						// Begin transaction
-						connection.setAutoCommit(false);
-						
-						// Insert into facility table
-						try (PreparedStatement stmt = connection.prepareStatement(insertFacilitySQL, Statement.RETURN_GENERATED_KEYS)) {
-						stmt.setString(1, facilityName);
-						stmt.setDouble(2, facilityBill);
-						int affectedRows = stmt.executeUpdate();
-						
-						if (affectedRows == 0) {
-						throw new SQLException("Inserting facility failed, no rows affected.");
-						}
-						
-						// Get the auto-generated facilityID
-						try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
-						if (generatedKeys.next()) {
-						facilityID = generatedKeys.getInt(1);
-						} else {
-						throw new SQLException("Inserting facility failed, no ID obtained.");
-						}
-						}
-						}
-						
-						// Update the bills table with the facilityID
-						try (PreparedStatement stmt = connection.prepareStatement(updateBillSQL)) {
-						stmt.setDouble(1, electricityBill);
-						stmt.setDouble(2, waterBill);
-						stmt.setInt(3, facilityID);
-						stmt.setInt(4, billID);
-						
-						int rowsUpdated = stmt.executeUpdate();
-						if (rowsUpdated > 0) {
-						success = true;
-						} else {
-						throw new SQLException("Updating bill failed, no rows affected.");
-						}
-						}
-						
-						// Commit the transaction
-						connection.commit();
-						
-						} catch (SQLException e) {
-						// Rollback transaction in case of an error
-						try {
-						if (connection != null) {
-						connection.rollback();
-						}
-						} catch (SQLException ex) {
-						ex.printStackTrace();
-						}
-						e.printStackTrace();
-						} finally {
-						// Reset auto-commit to true
-						try {
-						if (connection != null) {
-						connection.setAutoCommit(true);
-						}
-						} catch (SQLException ex) {
-						ex.printStackTrace();
-						}
-						}
-						
-						return success;
-						}
+ResultSet keys = stmt.getGeneratedKeys();
+int facilityID = keys.next() ? keys.getInt(1) : -1;
+
+PreparedStatement updateStmt = connection.prepareStatement(updateBillSQL);
+updateStmt.setDouble(1, electricityBill);
+updateStmt.setDouble(2, waterBill);
+updateStmt.setDouble(3, advancePayment);
+updateStmt.setInt(4, facilityID);
+updateStmt.setInt(5, billID);
+success = updateStmt.executeUpdate() > 0;
+
+connection.commit();
+} catch (SQLException e) {
+e.printStackTrace();
+try {
+connection.rollback();
+} catch (SQLException ex) {
+ex.printStackTrace();
+}
+} finally {
+try {
+connection.setAutoCommit(true);
+} catch (SQLException e) {
+e.printStackTrace();
+}
+}
+
+return success;
+}
+
 	
 	
 	public List<Object[]> fetchTenantBillDetails() {
@@ -661,42 +546,7 @@ public class DatabaseConnection {
 	    return tenantBillDetails;
 	}
 	
-/*	public void populateTenantBillTable(JTable table) {
-	    String query = """
-	        SELECT t.tenantID, CONCAT(t.firstName, ' ', t.lastName) AS fullName, 
-	               b.billID, b.totalAmount, b.totalBalance
-	        FROM tenant t
-	        JOIN bills b ON t.tenantID = b.tenantID
-	    """;
 
-	    DefaultTableModel tableModel = (DefaultTableModel) table.getModel();
-	    tableModel.setRowCount(0); // Clear existing rows
-
-	    try (PreparedStatement statement = connection.prepareStatement(query);
-	         ResultSet resultSet = statement.executeQuery()) {
-
-	        NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(new Locale("en", "PH"));
-	        currencyFormat.setCurrency(java.util.Currency.getInstance("PHP"));
-
-	        while (resultSet.next()) {
-	            Object[] row = {
-	                resultSet.getInt("tenantID"),
-	                resultSet.getString("fullName"),
-	                resultSet.getInt("billID"),
-	                currencyFormat.format(resultSet.getDouble("totalAmount")),
-	                currencyFormat.format(resultSet.getDouble("totalBalance"))
-	            };
-	            tableModel.addRow(row);
-	        }
-	    } catch (SQLException e) {
-	        e.printStackTrace();
-	    }
-	}
-
-          */
-	
-	
-	
 	
 	public String processPayment(int billID, double paymentAmount, java.sql.Date paymentDate) {
 	    String resultMessage = "";

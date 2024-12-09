@@ -40,7 +40,7 @@ public class InsertChargesDialog extends JDialog {
 	 * Create the dialog.
 	 */
 	public InsertChargesDialog() {
-		setBounds(100, 100, 466, 451);
+		setBounds(100, 100, 466, 496);
 		getContentPane().setLayout(new BorderLayout());
 		contentPanel.setBackground(Color.WHITE);
 		contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
@@ -122,6 +122,15 @@ public class InsertChargesDialog extends JDialog {
     	txtFacilityBill.setColumns(10);
     	txtFacilityBill.setBounds(183, 240, 215, 26);
     	mainPanel.add(txtFacilityBill);
+    	
+    	JLabel lblAdvancePayment = new JLabel("Advance Payment:");
+    	lblAdvancePayment.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+    	lblAdvancePayment.setBounds(34, 290, 121, 19);
+    	mainPanel.add(lblAdvancePayment);
+
+    	JTextField txtAdvancePayment = new JTextField();
+    	txtAdvancePayment.setBounds(183, 290, 215, 26);
+    	mainPanel.add(txtAdvancePayment);
 		
 		
 		{
@@ -130,33 +139,19 @@ public class InsertChargesDialog extends JDialog {
 			getContentPane().add(buttonPane, BorderLayout.SOUTH);
 			{
 				JButton btnInsert = new JButton("INSERT");
-				btnInsert.addActionListener(new ActionListener() {
-				    public void actionPerformed(ActionEvent e) {
-				        // Get the input data as strings from the text fields
-				        String billIDStr = txtBillID.getText();
-				        String electricityBillStr = txtElectricity.getText();
-				        String waterBillStr = txtWater.getText();
-				        String facilityName = txtFacilityName.getText();
-				        String facilityBillStr = txtFacilityBill.getText();
+				btnInsert.addActionListener(e -> {
+				    DatabaseConnection db = new DatabaseConnection();
+				    boolean success = db.insertFacilityAndUpdateBill(
+				        txtBillID.getText(),
+				        txtElectricity.getText(),
+				        txtWater.getText(),
+				        txtAdvancePayment.getText(),
+				        txtFacilityName.getText(),
+				        txtFacilityBill.getText()
+				    );
 
-				        // Create a DatabaseConnection instance
-				        DatabaseConnection dbConnection = new DatabaseConnection();
-
-				        // Call the combined method to insert into the facility table and update the bill
-				        boolean success = dbConnection.insertFacilityAndUpdateBill(billIDStr, electricityBillStr, 
-				                                                                  waterBillStr, facilityName, 
-				                                                                  facilityBillStr);
-				        
-				        if (success) {
-				            JOptionPane.showMessageDialog(InsertChargesDialog.this, "Charges inserted successfully.");
-				            
-				        } else {
-				            JOptionPane.showMessageDialog(InsertChargesDialog.this, "Failed to insert charges.");
-				        }
-				        dispose();
-
-				       
-				    }
+				    JOptionPane.showMessageDialog(this, success ? "Charges inserted successfully." : "Failed to insert charges.");
+				    if (success) dispose();
 				});
 
 				btnInsert.setBorderPainted(false);
